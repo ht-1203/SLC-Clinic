@@ -745,32 +745,41 @@ if ('serviceWorker' in navigator) {
 }
 
 /* ---------- boot ---------- */
+function lsLoad() {
+  try {
+    const c = localStorage.getItem('slc_courses');
+    const a = localStorage.getItem('slc_appointments');
+    if (c) COURSES.splice(0, COURSES.length, ...JSON.parse(c));
+    if (a) APPOINTMENTS.splice(0, APPOINTMENTS.length, ...JSON.parse(a));
+  } catch(_) {}
+}
+
 async function boot() {
   const loading = document.getElementById('loading');
+  const hide = () => { if (loading) loading.style.display = 'none'; };
+
+  // Timeout 5 วินาที — ถ้า Supabase ไม่ตอบให้ fallback ทันที
+  const timer = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 5000));
+
   try {
-    // ใช้ _supa จาก supabase.js โดยตรง — ไม่สร้าง client ซ้ำ
-    const hasSession = await supaCheckSession();
+    if (!window.supabase) throw new Error('no-cdn');
 
-    if (loading) loading.style.display = 'none';
-
-    if (!hasSession) {
-      renderAuth();
-      return;
-    }
-
-    // มี session → โหลดข้อมูลเลย (ไม่ต้องเรียก supaInit ซ้ำ)
-    await supaLoad();
-    setTab('home');
-
+    await Promise.race([
+      (async () => {
+        const hasSession = await supaCheckSession();
+        hide();
+        if (!hasSession) { renderAuth(); return; }
+        await supaLoad();
+        setTab('home');
+      })(),
+      timer,
+    ]);
   } catch(e) {
-    if (loading) loading.style.display = 'none';
-    console.warn('Supabase unavailable, using localStorage:', e.message);
-    try {
-      const c = localStorage.getItem('slc_courses');
-      const a = localStorage.getItem('slc_appointments');
-      if (c) COURSES.splice(0, COURSES.length, ...JSON.parse(c));
-      if (a) APPOINTMENTS.splice(0, APPOINTMENTS.length, ...JSON.parse(a));
-    } catch(_) {}
+    hide();
+    if (e.message === 'timeout') {
+      toast('การเชื่อมต่อช้า — ใช้ข้อมูล offline แทน');
+    }
+    lsLoad();
     setTab('home');
   }
 }
