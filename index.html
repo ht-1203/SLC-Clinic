@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#2BBDCE" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="SLC Clinic" />
+  <title>SLC Clinics — ระบบจองหัตถการ & คอร์ส</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Kanit:ital,wght@0,500;0,600;0,700;1,600;1,700&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Desktop backdrop label -->
+  <div class="desk-brand">
+    <div class="desk-brand__mark">
+      <svg viewBox="0 0 20 13" width="22" height="14" aria-hidden="true">
+        <path d="M10 9C8 4 2 2 1 6C0 10 5 11 10 9Z" fill="currentColor"/>
+        <path d="M10 9C12 4 18 2 19 6C20 10 15 11 10 9Z" fill="currentColor"/>
+        <ellipse cx="10" cy="10" rx="1.2" ry="1.8" fill="currentColor"/>
+      </svg>
+    </div>
+    <div>
+      <div class="desk-brand__name">SLC CLINICS &amp; HOSPITAL</div>
+      <div class="desk-brand__sub">Treatment & Course Management — Prototype</div>
+    </div>
+  </div>
+
+  <!-- Phone frame -->
+  <div class="device">
+    <div class="device__notch"></div>
+    <div class="device__screen">
+      <!-- Status bar -->
+      <div class="statusbar">
+        <span class="statusbar__time">09:41</span>
+        <span class="statusbar__icons">
+          <span class="statusbar__signal"></span>
+          <span class="statusbar__wifi"></span>
+          <span class="statusbar__bat"><i></i></span>
+        </span>
+      </div>
+
+      <!-- App content gets injected here -->
+      <main id="view" class="view"></main>
+
+      <!-- Bottom navigation -->
+      <nav id="tabbar" class="tabbar"></nav>
+    </div>
+  </div>
+
+  <!-- Loading screen -->
+  <div id="loading" style="display:flex;position:fixed;inset:0;background:#0D2030;z-index:9999;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+    <svg viewBox="0 0 20 13" width="52" height="34" style="fill:#2BBDCE">
+      <path d="M10 9C8 4 2 2 1 6C0 10 5 11 10 9Z"/>
+      <path d="M10 9C12 4 18 2 19 6C20 10 15 11 10 9Z"/>
+      <ellipse cx="10" cy="10" rx="1.2" ry="1.8"/>
+    </svg>
+    <div style="color:#7A9DB5;font-size:12px;font-family:'Sora',sans-serif;letter-spacing:.08em">กำลังโหลด...</div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script src="icons.js"></script>
+  <script src="data.js"></script>
+  <script src="supabase.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

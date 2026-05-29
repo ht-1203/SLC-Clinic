@@ -1,0 +1,21 @@
+# Supabase keys ไม่ควร commit (แม้ anon key จะ public)
+# แต่ service_role key ห้ามเด็ดขาด
+*.env
+.env.local
+.env.production
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+*.suo
+*.user
+
+# Logs
+*.log
+npm-debug.log*
+
+# Node (ถ้าใช้ในอนาคต)
+node_modules/
