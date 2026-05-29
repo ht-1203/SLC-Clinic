@@ -101,6 +101,14 @@ function renderTabbar() {
 }
 
 function showQRCheckinModal(appt) {
+  // Lazy load QRCode.js เฉพาะตอนใช้งานจริง
+  if (!window.QRCode) {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
+    s.onload = () => showQRCheckinModal(appt);
+    document.head.appendChild(s);
+    return;
+  }
   const screen = document.querySelector('.device__screen');
   if (screen.querySelector('.qr-overlay')) return;
   const c = courseById(appt.courseId);
@@ -740,41 +748,29 @@ if ('serviceWorker' in navigator) {
 async function boot() {
   const loading = document.getElementById('loading');
   try {
-    // Check existing session
-    const { data: { session } } = await window.supabase
-      .createClient('https://pcatoorajreiofsvpdhj.supabase.co',
-        'sb_publishable_T5FCHnar9rlkDLdSFZSFCg_tzg8gFrM')
-      .auth.getSession();
+    // ใช้ _supa จาก supabase.js โดยตรง — ไม่สร้าง client ซ้ำ
+    const hasSession = await supaCheckSession();
 
     if (loading) loading.style.display = 'none';
 
-    if (!session?.user) {
-      // No session → show auth screen
+    if (!hasSession) {
       renderAuth();
       return;
     }
 
-    // Has session → load data
-    try {
-      await supaInit();
-      await supaLoad();
-    } catch(e) {
-      console.warn('Supabase load failed, fallback:', e.message);
-      const c = localStorage.getItem('slc_courses');
-      const a = localStorage.getItem('slc_appointments');
-      if (c) try { COURSES.splice(0, COURSES.length, ...JSON.parse(c)); } catch(_) {}
-      if (a) try { APPOINTMENTS.splice(0, APPOINTMENTS.length, ...JSON.parse(a)); } catch(_) {}
-    }
+    // มี session → โหลดข้อมูลเลย (ไม่ต้องเรียก supaInit ซ้ำ)
+    await supaLoad();
     setTab('home');
 
   } catch(e) {
-    // Supabase completely unavailable (offline) → use localStorage
-    console.warn('Supabase unavailable:', e.message);
     if (loading) loading.style.display = 'none';
-    const c = localStorage.getItem('slc_courses');
-    const a = localStorage.getItem('slc_appointments');
-    if (c) try { COURSES.splice(0, COURSES.length, ...JSON.parse(c)); } catch(_) {}
-    if (a) try { APPOINTMENTS.splice(0, APPOINTMENTS.length, ...JSON.parse(a)); } catch(_) {}
+    console.warn('Supabase unavailable, using localStorage:', e.message);
+    try {
+      const c = localStorage.getItem('slc_courses');
+      const a = localStorage.getItem('slc_appointments');
+      if (c) COURSES.splice(0, COURSES.length, ...JSON.parse(c));
+      if (a) APPOINTMENTS.splice(0, APPOINTMENTS.length, ...JSON.parse(a));
+    } catch(_) {}
     setTab('home');
   }
 }

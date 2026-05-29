@@ -12,13 +12,18 @@ const _supa = window.supabase.createClient(SUPA_URL, SUPA_KEY, {
 let _user = null;
 let _seedAttempts = 0;
 
-/* ---- auth ---- */
-async function supaInit() {
+/* ---- ตรวจ session (ไม่ network call ถ้า session cache ยังอยู่) ---- */
+async function supaCheckSession() {
   const { data: { session } } = await _supa.auth.getSession();
-  if (session?.user) {
-    _user = session.user;
-    return _user;
-  }
+  if (session?.user) { _user = session.user; return true; }
+  return false;
+}
+
+/* ---- auth: anonymous sign-in ---- */
+async function supaInit() {
+  if (_user) return _user; // มี user แล้ว ไม่ต้อง call ซ้ำ
+  const { data: { session } } = await _supa.auth.getSession();
+  if (session?.user) { _user = session.user; return _user; }
   const { data, error } = await _supa.auth.signInAnonymously();
   if (error) throw new Error('Auth failed: ' + error.message);
   _user = data.user;
