@@ -56,6 +56,7 @@ function showRoleSelect() {
             <span class="role-card__label">ผู้รับบริการ</span>
             <span class="role-card__hint">ลูกค้าคลินิก</span>
           </span>
+          <span class="role-card__arrow">${icon('chevright','ic--sm')}</span>
         </button>
         <button class="role-card" data-role="staff">
           <span class="role-card__icon">${icon('shield')}</span>
@@ -63,6 +64,7 @@ function showRoleSelect() {
             <span class="role-card__label">พนักงาน</span>
             <span class="role-card__hint">เจ้าหน้าที่ / แพทย์</span>
           </span>
+          <span class="role-card__arrow">${icon('chevright','ic--sm')}</span>
         </button>
       </div>
     </div>`, 'role-screen');
