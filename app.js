@@ -98,7 +98,7 @@ function renderTabbar() {
     </div>
     <div class="scanbtn" data-act="scan">${icon('scan')}<span>SCAN</span></div>`;
   $tabbar.querySelectorAll('[data-tab]').forEach(el => el.onclick = () => setTab(el.dataset.tab));
-  $tabbar.querySelector('[data-act="scan"]').onclick = () => toast('เปิดกล้องเพื่อสแกนเช็คอินที่คลินิก');
+  $tabbar.querySelector('[data-act="scan"]').onclick = () => showQRScanner();
 }
 
 function showQRCheckinModal(appt) {
@@ -173,79 +173,185 @@ function renderAuth() {
       <div class="auth-brand-name">SLC Clinics &amp; Hospital</div>
       <div class="auth-brand-sub">ระบบจองหัตถการ & คอร์สความงาม</div>
     </div>
-    <div class="auth-card" id="authStep1">
+
+    <!-- Tab switch -->
+    <div class="auth-tabs">
+      <button class="auth-tab is-active" data-tab="patient">ลูกค้า</button>
+      <button class="auth-tab" data-tab="staff">พนักงาน</button>
+    </div>
+
+    <!-- Patient login -->
+    <div class="auth-card" id="tabPatient">
       <p class="auth-title">เข้าสู่ระบบ</p>
-      <p class="auth-desc">กรอกอีเมลเพื่อรับรหัส OTP</p>
-      <input type="email" id="authEmail" class="auth-input" placeholder="email@example.com" autocomplete="email" />
-      <button class="btn btn--dark" id="btnSendOTP">รับรหัส OTP</button>
+      <p class="auth-desc">กรอกข้อมูลเพื่อดูคอร์สและจองนัดหมาย</p>
+      <div class="auth-field">
+        <label class="auth-label">เลข HN (Hospital Number)</label>
+        <input type="text" id="patientHN" class="auth-input" placeholder="เช่น 12345" inputmode="numeric" />
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">เลขบัตรประชาชน 13 หลัก</label>
+        <input type="text" id="patientID" class="auth-input" placeholder="X-XXXX-XXXXX-XX-X"
+          maxlength="17" inputmode="numeric" />
+      </div>
+      <button class="btn btn--dark" id="btnPatientLogin">เข้าสู่ระบบ</button>
       <div class="auth-divider"><span>หรือ</span></div>
       <button class="btn btn--ghost" id="btnDemo">ทดลองใช้งาน (Demo)</button>
     </div>
-    <div class="auth-card" id="authStep2" style="display:none">
-      <p class="auth-title">ยืนยันตัวตน</p>
-      <p class="auth-desc" id="authDescOTP">กรอกรหัส 6 หลักที่ส่งไปยังอีเมล</p>
-      <input type="text" id="authOTP" class="auth-input auth-input--otp" placeholder="000000"
-        maxlength="6" inputmode="numeric" autocomplete="one-time-code" />
-      <button class="btn btn--dark" id="btnVerify">ยืนยัน</button>
-      <button class="btn btn--ghost" id="btnBackEmail" style="margin-top:8px">ย้อนกลับ</button>
+
+    <!-- Staff login -->
+    <div class="auth-card" id="tabStaff" style="display:none">
+      <p class="auth-title">เข้าสู่ระบบพนักงาน</p>
+      <p class="auth-desc">สำหรับเจ้าหน้าที่และแพทย์</p>
+      <div class="auth-field">
+        <label class="auth-label">อีเมล (@slc-group.com)</label>
+        <input type="email" id="staffEmail" class="auth-input" placeholder="name@slc-group.com" autocomplete="email" />
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">รหัสผ่าน</label>
+        <input type="password" id="staffPass" class="auth-input" placeholder="รหัสผ่าน" autocomplete="current-password" />
+      </div>
+      <button class="btn btn--dark" id="btnStaffLogin">เข้าสู่ระบบ</button>
     </div>
   </div>`;
 
-  let _authEmail = '';
+  // Tab switch
+  document.querySelectorAll('.auth-tab').forEach(t => t.onclick = () => {
+    document.querySelectorAll('.auth-tab').forEach(x => x.classList.remove('is-active'));
+    t.classList.add('is-active');
+    document.getElementById('tabPatient').style.display = t.dataset.tab === 'patient' ? '' : 'none';
+    document.getElementById('tabStaff').style.display   = t.dataset.tab === 'staff'   ? '' : 'none';
+  });
 
-  document.getElementById('btnSendOTP').onclick = async () => {
-    const email = document.getElementById('authEmail').value.trim();
-    if (!email || !email.includes('@')) { toast('กรุณากรอกอีเมลที่ถูกต้อง'); return; }
-    const btn = document.getElementById('btnSendOTP');
-    btn.disabled = true; btn.textContent = 'กำลังส่ง...';
-    try {
-      await supaSignInEmail(email);
-      _authEmail = email;
-      document.getElementById('authDescOTP').textContent = `ส่งรหัสไปยัง ${email} แล้ว`;
-      document.getElementById('authStep1').style.display = 'none';
-      document.getElementById('authStep2').style.display = '';
-      setTimeout(() => document.getElementById('authOTP').focus(), 100);
-    } catch(e) {
-      toast('ส่ง OTP ไม่สำเร็จ: ' + e.message);
-    } finally {
-      btn.disabled = false; btn.textContent = 'รับรหัส OTP';
-    }
+  // Format ID card with dashes as you type
+  document.getElementById('patientID').oninput = function() {
+    const d = this.value.replace(/\D/g,'').slice(0,13);
+    const parts = [d.slice(0,1), d.slice(1,5), d.slice(5,10), d.slice(10,12), d.slice(12,13)];
+    this.value = parts.filter(Boolean).join('-');
   };
 
-  document.getElementById('btnVerify').onclick = async () => {
-    const token = document.getElementById('authOTP').value.trim();
-    if (token.length !== 6) { toast('กรุณากรอกรหัส 6 หลัก'); return; }
-    const btn = document.getElementById('btnVerify');
-    btn.disabled = true; btn.textContent = 'กำลังยืนยัน...';
+  // Patient login
+  document.getElementById('btnPatientLogin').onclick = async () => {
+    const hn = document.getElementById('patientHN').value.trim();
+    const id = document.getElementById('patientID').value;
+    const btn = document.getElementById('btnPatientLogin');
+    btn.disabled = true; btn.textContent = 'กำลังตรวจสอบ...';
     try {
-      await supaVerifyOTP(_authEmail, token);
+      await signInPatient(hn, id);
       await supaLoad();
       setTab('home');
     } catch(e) {
-      toast('รหัสไม่ถูกต้องหรือหมดอายุ');
+      toast(e.message || 'ข้อมูลไม่ถูกต้อง กรุณาลองใหม่');
     } finally {
-      btn.disabled = false; btn.textContent = 'ยืนยัน';
+      btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
     }
   };
 
-  document.getElementById('btnBackEmail').onclick = () => {
-    document.getElementById('authStep2').style.display = 'none';
-    document.getElementById('authStep1').style.display = '';
+  // Staff login
+  document.getElementById('btnStaffLogin').onclick = async () => {
+    const email = document.getElementById('staffEmail').value.trim();
+    const pass  = document.getElementById('staffPass').value;
+    const btn   = document.getElementById('btnStaffLogin');
+    btn.disabled = true; btn.textContent = 'กำลังตรวจสอบ...';
+    try {
+      await signInStaff(email, pass);
+      await supaLoad();
+      const staffMode = await isStaff();
+      if (staffMode) { go('staffDashboard'); }
+      else { setTab('home'); }
+    } catch(e) {
+      toast(e.message || 'เข้าสู่ระบบไม่สำเร็จ');
+    } finally {
+      btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
+    }
   };
 
+  // Demo mode
   document.getElementById('btnDemo').onclick = async () => {
     const btn = document.getElementById('btnDemo');
     btn.disabled = true; btn.textContent = 'กำลังโหลด...';
     try {
-      await supaInit();
-      await supaLoad();
-      setTab('home');
+      await supaInit(); await supaLoad(); setTab('home');
     } catch(e) {
-      toast('เกิดข้อผิดพลาด ลองใหม่อีกครั้ง');
+      toast('เกิดข้อผิดพลาด ลองใหม่');
       btn.disabled = false; btn.textContent = 'ทดลองใช้งาน (Demo)';
     }
   };
   renderTabbar();
+}
+
+/* ============================================================
+   STAFF DASHBOARD + QR SCANNER
+   ============================================================ */
+function showQRScanner() {
+  const screen = document.querySelector('.app-shell') || document.body;
+  if (document.getElementById('qr-scanner-overlay')) return;
+  const ov = document.createElement('div');
+  ov.id = 'qr-scanner-overlay';
+  ov.className = 'qr-scanner-overlay';
+  ov.innerHTML = `
+    <div class="qrs-header">
+      <button class="qrs-close" id="qrsClose">&times;</button>
+      <p class="qrs-title">สแกน QR เช็คอิน</p>
+      <p class="qrs-sub">แสดงกล้องเพื่อสแกน QR ของลูกค้า</p>
+    </div>
+    <div id="qrs-reader" class="qrs-reader"></div>
+    <div id="qrs-result" class="qrs-result"></div>`;
+  screen.appendChild(ov);
+
+  document.getElementById('qrsClose').onclick = () => {
+    if (window._qrScanner) { window._qrScanner.stop().catch(()=>{}); window._qrScanner = null; }
+    ov.remove();
+  };
+
+  const loadScanner = () => {
+    if (!window.Html5Qrcode) {
+      const s = document.createElement('script');
+      s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+      s.onload = startScan;
+      document.head.appendChild(s);
+    } else { startScan(); }
+  };
+
+  const startScan = () => {
+    window._qrScanner = new Html5Qrcode('qrs-reader');
+    window._qrScanner.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      async (text) => {
+        // QR format: "userId:appointmentId"
+        window._qrScanner.stop().catch(()=>{});
+        const [uid, apptId] = text.split(':');
+        const el = document.getElementById('qrs-result');
+        if (!el) return;
+        el.innerHTML = `<div class="qrs-loading">กำลังตรวจสอบ...</div>`;
+        try {
+          const { data, error } = await window._supa
+            .from('appointments').select('*, packages(name)')
+            .eq('id', apptId).single();
+          if (error || !data) throw new Error('ไม่พบนัดหมาย');
+          // Mark confirmed
+          await window._supa.from('appointments')
+            .update({ status: 'confirmed' }).eq('id', apptId);
+          el.innerHTML = `
+            <div class="qrs-success">
+              <div class="qrs-ok">✓</div>
+              <div class="qrs-name">${data.packages?.name || 'คอร์ส'}</div>
+              <div class="qrs-info">${data.date} เวลา ${data.time} น.</div>
+              <div class="qrs-badge">เช็คอินสำเร็จ</div>
+            </div>`;
+        } catch(e) {
+          el.innerHTML = `<div class="qrs-error">ไม่พบนัดหมายนี้</div>`;
+        }
+        setTimeout(() => { if (ov.parentNode) ov.remove(); }, 3000);
+      },
+      () => {}
+    ).catch(e => {
+      document.getElementById('qrs-result').innerHTML =
+        `<p style="color:var(--rose);text-align:center;padding:16px">ไม่สามารถเปิดกล้องได้<br><small>${e.message}</small></p>`;
+    });
+  };
+
+  loadScanner();
 }
 
 /* ============================================================

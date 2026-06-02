@@ -55,3 +55,24 @@ CREATE POLICY "users_own_packages" ON packages
 CREATE POLICY "users_own_appointments" ON appointments
   FOR ALL USING      (auth.uid() = user_id)
   WITH CHECK         (auth.uid() = user_id);
+
+-- 4. บทบาทพนักงาน (staff)
+CREATE TABLE IF NOT EXISTS staff_roles (
+  user_id   UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  role      TEXT NOT NULL DEFAULT 'staff' CHECK (role IN ('staff','admin')),
+  full_name TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE staff_roles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "staff_read_own" ON staff_roles FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "staff_write_own" ON staff_roles FOR ALL USING (auth.uid() = user_id);
+
+-- staff สามารถอ่านนัดหมาย + packages ทุกคน (เพื่อ QR scan check-in)
+CREATE POLICY "staff_read_all_appts" ON appointments
+  FOR SELECT USING (
+    EXISTS (SELECT 1 FROM staff_roles WHERE user_id = auth.uid())
+  );
+CREATE POLICY "staff_update_appts" ON appointments
+  FOR UPDATE USING (
+    EXISTS (SELECT 1 FROM staff_roles WHERE user_id = auth.uid())
+  );

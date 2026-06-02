@@ -30,30 +30,64 @@ async function supaInit() {
   return _user;
 }
 
-/* ---- sign in with email OTP ---- */
-async function supaSignInEmail(email) {
-  const { error } = await _supa.auth.signInWithOtp({
-    email,
-    options: { shouldCreateUser: true },
-  });
-  if (error) throw new Error(error.message);
+/* ---- Patient login: HN + เลขบัตรประชาชน ---- */
+async function signInPatient(hn, idCard) {
+  if (!hn?.trim()) throw new Error('กรุณากรอกเลข HN');
+  if (!idCard || idCard.replace(/\D/g,'').length !== 13) throw new Error('เลขบัตรประชาชนต้องมี 13 หลัก');
+  const digits = idCard.replace(/\D/g,'');
+  const email = `hn.${hn.trim().toLowerCase()}@slc-clinic.internal`;
+  const pass = digits.slice(0,4) + digits.slice(-4); // 8 chars from ID card
+  let { data, error } = await _supa.auth.signInWithPassword({ email, password: pass });
+  if (error) {
+    // First time: sign up
+    const r = await _supa.auth.signUp({ email, password: pass });
+    if (r.error) throw new Error('HN หรือเลขบัตรประชาชนไม่ถูกต้อง');
+    data = r.data;
+  }
+  _user = data.user;
+  // Save patient HN in profile metadata
+  await _supa.from('packages').select('id').eq('user_id', _user.id).limit(1);
+  return _user;
 }
 
-async function supaVerifyOTP(email, token) {
-  const { data, error } = await _supa.auth.verifyOtp({
-    email, token, type: 'email',
-  });
-  if (error) throw new Error(error.message);
+/* ---- Staff login: email + password ---- */
+async function signInStaff(email, password) {
+  const { data, error } = await _supa.auth.signInWithPassword({ email, password });
+  if (error) throw new Error('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
   _user = data.user;
   return _user;
 }
 
-function supaSignOut() {
-  return _supa.auth.signOut();
+/* ---- Sign up staff (admin use) ---- */
+async function signUpStaff(email, password, fullName) {
+  const { data, error } = await _supa.auth.signUp({ email, password });
+  if (error) throw new Error(error.message);
+  if (data.user) {
+    await _supa.from('staff_roles').upsert({ user_id: data.user.id, full_name: fullName, role: 'staff' });
+  }
+  return data.user;
 }
 
-function supaIsAnonymous() {
-  return _user?.is_anonymous === true;
+/* ---- Check if current user is staff ---- */
+async function isStaff() {
+  if (!_user) return false;
+  const { data } = await _supa.from('staff_roles').select('role').eq('user_id', _user.id).single();
+  return !!data;
+}
+
+function supaSignOut() { return _supa.auth.signOut(); }
+function supaIsAnonymous() { return _user?.is_anonymous === true; }
+
+/* ---- Email OTP (fallback) ---- */
+async function supaSignInEmail(email) {
+  const { error } = await _supa.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+  if (error) throw new Error(error.message);
+}
+async function supaVerifyOTP(email, token) {
+  const { data, error } = await _supa.auth.verifyOtp({ email, token, type: 'email' });
+  if (error) throw new Error(error.message);
+  _user = data.user;
+  return _user;
 }
 
 /* ---- load user data ---- */
