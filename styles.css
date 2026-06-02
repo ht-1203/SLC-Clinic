@@ -57,54 +57,23 @@ body {
   display: none;
   min-height: 100vh; align-items: center; justify-content: center;
   background: linear-gradient(135deg, #071828 0%, #0D2030 60%, #152E40 100%);
-  padding: 40px;
 }
-.dn-left {
-  display: flex; flex-direction: column; gap: 24px;
-  max-width: 380px; padding-right: 60px;
-  border-right: 1px solid rgba(255,255,255,.1);
-}
-.dn-logo-wrap {
-  background: #ffffff;
-  border-radius: 20px;
-  padding: 20px 28px;
-  box-shadow: 0 8px 40px rgba(0,0,0,.4);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.dn-logo-img {
-  width: 180px; height: auto; display: block;
-}
-.dn-qr-wrap {
-  background: #fff; border-radius: 16px; padding: 12px;
-  box-shadow: 0 8px 32px rgba(0,0,0,.3);
-}
-.dn-tagline {
-  font-family: var(--font-dp); font-size: 26px; font-weight: 600;
-  color: #fff; line-height: 1.4;
-}
-.dn-features { list-style: none; display: flex; flex-direction: column; gap: 12px; }
-.dn-features li {
-  font-size: 15px; color: rgba(255,255,255,.65);
-  padding-left: 24px; position: relative; line-height: 1.5;
-}
-.dn-features li::before {
-  content: '✓'; position: absolute; left: 0;
-  color: var(--brand); font-weight: 700;
-}
-.dn-right {
-  padding-left: 60px;
+.dn-card {
+  background: #fff; border-radius: 28px;
+  padding: 40px 36px; width: 360px;
   display: flex; flex-direction: column; align-items: center; gap: 16px;
+  box-shadow: 0 32px 80px rgba(0,0,0,.4);
+  text-align: center;
 }
-.dn-qr { background: #fff; border-radius: 16px; padding: 12px; box-shadow: 0 8px 32px rgba(0,0,0,.3); }
-.dn-qr canvas { display: block; }
-.dn-scan-label { font-size: 14px; color: rgba(255,255,255,.6); font-weight: 500; }
-.dn-url { font-family: var(--font-en); font-size: 12px; color: var(--brand); letter-spacing: .04em; }
+.dn-brand { font-family: var(--font-en); font-size: 17px; font-weight: 700; color: var(--ink); letter-spacing: .04em; }
+.dn-phone-icon { width: 64px; height: 64px; border-radius: 50%; background: var(--bg-2); display: grid; place-items: center; }
+.dn-title { font-family: var(--font-dp); font-size: 20px; font-weight: 600; color: var(--ink); }
+.dn-desc { font-size: 13.5px; color: var(--muted); line-height: 1.65; }
+.dn-url { font-size: 12px; color: var(--brand); font-family: var(--font-en); font-weight: 600; }
 
 /* Logo image utility */
 .logo-img { display: block; object-fit: contain; }
-.logo-img--hero { mix-blend-mode: screen; filter: brightness(10); }
+.logo-img--hero { filter: brightness(0) invert(1); }
 
 @media (max-width: 767px) { .desktop-notice { display: none !important; } }
 @media (min-width: 768px) { .desktop-notice { display: flex; } }

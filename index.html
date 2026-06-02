@@ -18,23 +18,26 @@
 
   <!-- ====== DESKTOP NOTICE (hidden on mobile) ====== -->
   <div id="desktop-notice" class="desktop-notice">
-    <div class="dn-left">
-      <div class="dn-logo-wrap">
-        <img src="slc-logo.png" class="dn-logo-img" alt="SLC Clinics & Hospital" />
+    <div class="dn-card">
+      <!-- Logo -->
+      <img src="slc-logo.png" style="width:200px;height:auto;display:block;" alt="SLC Clinics & Hospital" />
+
+      <p class="dn-brand">SLC Clinics &amp; Hospital</p>
+
+      <!-- Phone icon -->
+      <div class="dn-phone-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#2BBDCE" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="32" height="32">
+          <rect x="5" y="2" width="14" height="20" rx="3"/><path d="M9 5.5h6"/>
+        </svg>
       </div>
-      <h2 class="dn-tagline">ระบบจองหัตถการ<br>&amp; ติดตามคอร์สความงาม</h2>
-      <ul class="dn-features">
-        <li>ดูคอร์สที่ซื้อไว้และสิทธิ์คงเหลือ</li>
-        <li>จองนัดหมายหัตถการออนไลน์</li>
-        <li>เช็คอินด้วย QR Code</li>
-      </ul>
-    </div>
-    <div class="dn-right">
-      <div class="dn-qr-wrap">
-        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https%3A%2F%2Fht-1203.github.io%2FSLC-Clinic%2F&color=0D2030&bgcolor=ffffff&margin=2"
-          width="200" height="200" alt="QR Code" style="border-radius:12px;display:block" />
-      </div>
-      <p class="dn-scan-label">สแกนเพื่อเปิดบนมือถือ</p>
+
+      <h2 class="dn-title">แอปนี้ออกแบบสำหรับมือถือ</h2>
+      <p class="dn-desc">กรุณาเปิดบนสมาร์ทโฟน หรือสแกน QR code ด้านล่าง</p>
+
+      <!-- QR Code -->
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=https%3A%2F%2Fht-1203.github.io%2FSLC-Clinic%2F&color=0D2030&bgcolor=ffffff&margin=1"
+        width="160" height="160" alt="QR Code" style="display:block;border-radius:10px;border:1px solid #eee;" />
+
       <p class="dn-url">ht-1203.github.io/SLC-Clinic</p>
     </div>
   </div>
