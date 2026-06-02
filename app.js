@@ -25,8 +25,10 @@ function showSplash(onDone) {
 /* ============================================================
    PIN SCREEN
    ============================================================ */
-const PIN_KEY  = 'slc_pin';
-const ROLE_KEY = 'slc_role'; // 'patient' | 'staff'
+const PIN_KEY_PATIENT = 'slc_pin_patient';
+const PIN_KEY_STAFF   = 'slc_pin_staff';
+const PIN_KEY  = 'slc_pin'; // legacy — will be migrated
+const ROLE_KEY = 'slc_role';
 
 /* ---- helper: mount/remove full-screen layer ---- */
 function mountLayer(html, cls) {
@@ -73,7 +75,17 @@ function showRoleSelect() {
     btn.onclick = () => {
       const role = btn.dataset.role;
       localStorage.setItem(ROLE_KEY, role);
-      removeLayer(el, () => showCredentials(role));
+      const pinKey = role === 'patient' ? PIN_KEY_PATIENT : PIN_KEY_STAFF;
+      const hasPin = !!localStorage.getItem(pinKey);
+      removeLayer(el, () => {
+        if (hasPin) {
+          // เคย login ไว้แล้ว → ใส่ PIN ได้เลย
+          showPIN(startApp, pinKey);
+        } else {
+          // ครั้งแรก → กรอก credentials ก่อน
+          showCredentials(role);
+        }
+      });
     };
   });
 }
@@ -154,7 +166,8 @@ function showCredentials(role) {
         await signInStaff(a + '@slc-clinic.internal', b);
         await supaLoad();
       }
-      removeLayer(el, () => showPIN(isPatient ? startApp : () => go('profile')));
+      const pk = isPatient ? PIN_KEY_PATIENT : PIN_KEY_STAFF;
+      removeLayer(el, () => showPIN(startApp, pk));
     } catch(e) {
       err.textContent = e.message || 'ข้อมูลไม่ถูกต้อง';
       btn.disabled = false; btn.textContent = 'ถัดไป';
@@ -165,8 +178,9 @@ function showCredentials(role) {
 /* ============================================================
    3. PIN
    ============================================================ */
-function showPIN(onSuccess) {
-  const stored = localStorage.getItem(PIN_KEY);
+function showPIN(onSuccess, pinKey) {
+  pinKey = pinKey || PIN_KEY_PATIENT;
+  const stored = localStorage.getItem(pinKey);
   const isSetup = !stored;
   const el = mountLayer(`
     <div class="pin-top">
@@ -208,7 +222,7 @@ function showPIN(onSuccess) {
         confirm2 = entry; entry = ''; step = 'confirm';
         hint().textContent = 'ยืนยัน PIN อีกครั้ง'; fill(0);
       } else {
-        if (entry === confirm2) { localStorage.setItem(PIN_KEY, entry); removeLayer(el, onSuccess); }
+        if (entry === confirm2) { localStorage.setItem(pinKey, entry); removeLayer(el, onSuccess); }
         else { confirm2 = ''; step = 'set'; shake('PIN ไม่ตรงกัน ตั้งใหม่'); }
       }
     }, 120);
@@ -219,7 +233,9 @@ function showPIN(onSuccess) {
 
 /* ---- logout helper ---- */
 function doLogout() {
-  localStorage.removeItem(PIN_KEY);
+  const role = localStorage.getItem(ROLE_KEY);
+  localStorage.removeItem(role === 'staff' ? PIN_KEY_STAFF : PIN_KEY_PATIENT);
+  localStorage.removeItem(PIN_KEY); // legacy
   localStorage.removeItem(ROLE_KEY);
   supaSignOut().catch(()=>{});
   showRoleSelect();
@@ -1140,21 +1156,11 @@ async function bgSync() {
 }
 
 function boot() {
-  // แสดง app ทันที ก่อนทำอะไร
   const appEl = document.getElementById('app');
   if (appEl) appEl.style.display = '';
   try { document.getElementById('loading').remove(); } catch(_) {}
-
-  const hasPin  = !!localStorage.getItem(PIN_KEY);
-  const hasRole = !!localStorage.getItem(ROLE_KEY);
-
-  showSplash(() => {
-    if (hasPin && hasRole) {
-      showPIN(startApp);
-    } else {
-      showRoleSelect();
-    }
-  });
+  // แสดง Role Selection ทุกครั้งก่อนเสมอ
+  showSplash(() => showRoleSelect());
 }
 
 function startApp() {
