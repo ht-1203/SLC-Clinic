@@ -38,8 +38,10 @@ function mountLayer(html, cls) {
   return el;
 }
 function removeLayer(el, cb) {
+  // แสดง layer ใหม่ก่อน (ซ้อนทับ) แล้วค่อย fade layer เก่าออก — ไม่มีกระพิบ
+  if (cb) cb();
   el.classList.add('layer-exit');
-  setTimeout(() => { el.remove(); cb && cb(); }, 380);
+  setTimeout(() => el.remove(), 350);
 }
 
 /* ============================================================

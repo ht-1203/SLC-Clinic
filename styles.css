@@ -68,7 +68,7 @@ body {
 /* Overlay screens: เต็มจอเสมอ ไม่มี max-width */
 .role-screen, .cred-screen, .pin-screen {
   position: fixed; inset: 0; z-index: 8000;
-  background: var(--bg); animation: rise .28s ease;
+  background: var(--bg);
   display: flex; flex-direction: column;
 }
 
