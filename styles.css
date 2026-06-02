@@ -535,15 +535,6 @@ body {
 .role-card__label { font-size: 17px; font-weight: 700; color: var(--ink); white-space: nowrap; }
 .role-card__hint { font-size: 13px; color: var(--muted); white-space: nowrap; }
 .role-card__arrow { flex: 0 0 auto; }
-.role-demo {
-  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-  background: none; border: 0; cursor: pointer; width: 100%; margin-top: 8px;
-  padding: 14px; border-radius: 100px;
-  font-family: var(--font-th); font-size: clamp(13px, 3.6vw, 14.5px);
-  font-weight: 500; color: var(--muted);
-  transition: background .15s, color .15s;
-}
-.role-demo:active { background: var(--bg-2); color: var(--ink); }
 .role-card__arrow svg { width: 18px; height: 18px; stroke: var(--muted); }
 
 /* ============================================================

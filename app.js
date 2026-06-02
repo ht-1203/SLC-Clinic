@@ -73,7 +73,6 @@ function showRoleSelect() {
           <span class="role-card__arrow">${icon('chevright','ic--sm')}</span>
         </button>
       </div>
-      <button class="role-demo" id="roleDemo">${icon('smile','ic--sm')} ทดลองใช้งาน (Demo)</button>
     </div>`, 'role-screen');
 
   el.querySelectorAll('[data-role]').forEach(btn => {
@@ -91,8 +90,6 @@ function showRoleSelect() {
       });
     };
   });
-
-  el.querySelector('#roleDemo').onclick = () => removeLayer(el, startApp);
 }
 
 /* ============================================================
