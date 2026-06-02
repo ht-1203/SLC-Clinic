@@ -54,41 +54,49 @@ body {
    DESKTOP NOTICE
    ============================================================ */
 .desktop-notice {
-  display: none; /* shown by JS on desktop */
+  display: none;
   min-height: 100vh; align-items: center; justify-content: center;
-  background: linear-gradient(135deg, #0D2030 0%, #1A3D50 100%);
+  background: linear-gradient(135deg, #071828 0%, #0D2030 60%, #152E40 100%);
+  padding: 40px;
 }
-.dn-card {
-  background: #fff; border-radius: 24px; padding: 48px 40px;
-  max-width: 420px; width: 90%; text-align: center;
-  box-shadow: 0 32px 80px rgba(0,0,0,.25);
+.dn-left {
+  display: flex; flex-direction: column; gap: 24px;
+  max-width: 380px; padding-right: 60px;
+  border-right: 1px solid rgba(255,255,255,.1);
+}
+.dn-logo-img {
+  width: 180px; height: auto; object-fit: contain;
+  mix-blend-mode: multiply;
+  background: #fff; border-radius: 16px; padding: 16px;
+}
+.dn-tagline {
+  font-family: var(--font-dp); font-size: 26px; font-weight: 600;
+  color: #fff; line-height: 1.4;
+}
+.dn-features { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.dn-features li {
+  font-size: 15px; color: rgba(255,255,255,.65);
+  padding-left: 24px; position: relative; line-height: 1.5;
+}
+.dn-features li::before {
+  content: '✓'; position: absolute; left: 0;
+  color: var(--brand); font-weight: 700;
+}
+.dn-right {
+  padding-left: 60px;
   display: flex; flex-direction: column; align-items: center; gap: 16px;
 }
-.dn-logo { margin-bottom: 4px; }
-/* Logo image — ลบ background ขาวด้วย mix-blend-mode */
-.logo-img { display: block; mix-blend-mode: multiply; object-fit: contain; }
-.logo-img--hero { mix-blend-mode: screen; filter: brightness(10); } /* ขาวบน hero เข้ม */
-.dn-brand { font-family: var(--font-en); font-size: 18px; font-weight: 700;
-  color: var(--ink); letter-spacing: .06em; }
-.dn-phone-icon { width: 80px; height: 80px; border-radius: 50%; background: var(--bg-2);
-  display: grid; place-items: center; margin: 8px 0; }
-.dn-phone-icon svg { width: 36px; height: 36px; }
-.dn-title { font-family: var(--font-dp); font-size: 20px; font-weight: 600; color: var(--ink); }
-.dn-desc { font-size: 14px; color: var(--muted); line-height: 1.6; }
-.dn-qr { border-radius: 12px; overflow: hidden; }
+.dn-qr { background: #fff; border-radius: 16px; padding: 12px; box-shadow: 0 8px 32px rgba(0,0,0,.3); }
 .dn-qr canvas { display: block; }
-.dn-url { font-family: var(--font-en); font-size: 12px; color: var(--brand); font-weight: 600; }
-.dn-continue { background: none; border: 1.5px solid var(--line-2); border-radius: 100px;
-  padding: 10px 20px; font-family: var(--font-th); font-size: 13px; color: var(--muted);
-  cursor: pointer; transition: .15s; }
-.dn-continue:hover { border-color: var(--brand); color: var(--brand); }
+.dn-scan-label { font-size: 14px; color: rgba(255,255,255,.6); font-weight: 500; }
+.dn-url { font-family: var(--font-en); font-size: 12px; color: var(--brand); letter-spacing: .04em; }
 
-@media (max-width: 767px) {
-  .desktop-notice { display: none !important; }
-}
-@media (min-width: 768px) {
-  .desktop-notice { display: flex; }
-}
+/* Logo image utility */
+.logo-img { display: block; object-fit: contain; }
+.logo-img--hero { mix-blend-mode: screen; filter: brightness(10); }
+
+@media (max-width: 767px) { .desktop-notice { display: none !important; } }
+@media (min-width: 768px) { .desktop-notice { display: flex; } }
 
 /* ============================================================
    APP SHELL
