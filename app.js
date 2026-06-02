@@ -351,13 +351,15 @@ function renderTabbar() {
     { id: 'courses', icon: 'package' },
     { id: 'appts',   icon: 'calendar' },
   ];
+  const isStaffUser = localStorage.getItem(ROLE_KEY) === 'staff';
   $tabbar.innerHTML = `
     <div class="navpill">
       ${tabs.map(t => `<div class="tab${State.tab === t.id ? ' is-active' : ''}" data-tab="${t.id}">${icon(t.icon)}</div>`).join('')}
     </div>
-    <div class="scanbtn" data-act="scan">${icon('scan')}<span>SCAN</span></div>`;
+    ${isStaffUser ? `<div class="scanbtn" data-act="scan">${icon('scan')}<span>SCAN</span></div>` : ''}`;
   $tabbar.querySelectorAll('[data-tab]').forEach(el => el.onclick = () => setTab(el.dataset.tab));
-  $tabbar.querySelector('[data-act="scan"]').onclick = () => showQRScanner();
+  const scanBtn = $tabbar.querySelector('[data-act="scan"]');
+  if (scanBtn) scanBtn.onclick = () => showQRScanner();
 }
 
 function showQRCheckinModal(appt) {
@@ -419,148 +421,8 @@ function showSearchResults(term) {
 }
 
 /* ============================================================
-   AUTH SCREEN
+   AUTH SCREEN (dead code — boot flow uses showRoleSelect flow)
    ============================================================ */
-function renderAuth() {
-  $view.innerHTML = `
-  <div class="auth-page">
-
-    <!-- Hero header -->
-    <div class="auth-hero">
-      <div class="auth-hero__bg"></div>
-      <div class="auth-hero__content">
-        <img src="slc-logo.png" width="100" height="100" alt="SLC" class="logo-img logo-img--hero" />
-        <h1 class="auth-hero__brand">SLC Clinics &amp; Hospital</h1>
-        <p class="auth-hero__tag">ระบบจองหัตถการ & ติดตามคอร์สความงาม</p>
-      </div>
-    </div>
-
-    <!-- Login card -->
-    <div class="auth-body">
-
-      <!-- Tab switch -->
-      <div class="auth-tabs">
-        <button class="auth-tab is-active" data-tab="patient">${icon('user','ic--sm')} ลูกค้า</button>
-        <button class="auth-tab" data-tab="staff">${icon('shield','ic--sm')} พนักงาน</button>
-      </div>
-
-      <!-- ===== Patient login ===== -->
-      <div id="tabPatient">
-        <div class="auth-section-title">เข้าสู่ระบบด้วยข้อมูลผู้ป่วย</div>
-        <div class="auth-field">
-          <label class="auth-label">เลข HN (Hospital Number)</label>
-          <div class="auth-input-wrap">
-            ${icon('card','ic--sm')}
-            <input type="text" id="patientHN" class="auth-input" placeholder="เช่น 100245" inputmode="numeric" autocomplete="off" />
-          </div>
-        </div>
-        <div class="auth-field">
-          <label class="auth-label">เลขบัตรประชาชน 13 หลัก</label>
-          <div class="auth-input-wrap">
-            ${icon('shield','ic--sm')}
-            <input type="text" id="patientID" class="auth-input" placeholder="X-XXXX-XXXXX-XX-X"
-              maxlength="17" inputmode="numeric" autocomplete="off" />
-          </div>
-          <span class="auth-hint">ข้อมูลเข้ารหัสและปลอดภัย</span>
-        </div>
-        <button class="btn btn--brand" id="btnPatientLogin">เข้าสู่ระบบ</button>
-        <div class="auth-divider"><span>หรือ</span></div>
-        <button class="btn btn--ghost" id="btnDemo">ทดลองใช้งาน (Demo)</button>
-        <p class="auth-note">* สำหรับลูกค้าที่เคยใช้บริการ SLC Clinics แล้วเท่านั้น</p>
-      </div>
-
-      <!-- ===== Staff login ===== -->
-      <div id="tabStaff" style="display:none">
-        <div class="auth-section-title">เข้าสู่ระบบสำหรับเจ้าหน้าที่</div>
-        <div class="auth-field">
-          <label class="auth-label">อีเมล</label>
-          <div class="auth-input-wrap">
-            ${icon('phone','ic--sm')}
-            <input type="email" id="staffEmail" class="auth-input" placeholder="name@slc-group.com" autocomplete="email" />
-          </div>
-        </div>
-        <div class="auth-field">
-          <label class="auth-label">รหัสผ่าน</label>
-          <div class="auth-input-wrap">
-            ${icon('shield','ic--sm')}
-            <input type="password" id="staffPass" class="auth-input" placeholder="••••••••" autocomplete="current-password" />
-          </div>
-        </div>
-        <button class="btn btn--brand" id="btnStaffLogin">เข้าสู่ระบบ</button>
-      </div>
-
-    </div>
-
-    <!-- Footer -->
-    <div class="auth-footer">
-      <p>© 2568 SLC Clinics & Hospital · <a href="#" style="color:var(--brand)">นโยบายความเป็นส่วนตัว</a></p>
-    </div>
-  </div>`;
-
-  // Tab switch
-  document.querySelectorAll('.auth-tab').forEach(t => t.onclick = () => {
-    document.querySelectorAll('.auth-tab').forEach(x => x.classList.remove('is-active'));
-    t.classList.add('is-active');
-    document.getElementById('tabPatient').style.display = t.dataset.tab === 'patient' ? '' : 'none';
-    document.getElementById('tabStaff').style.display   = t.dataset.tab === 'staff'   ? '' : 'none';
-  });
-
-  // Format ID card with dashes as you type
-  document.getElementById('patientID').oninput = function() {
-    const d = this.value.replace(/\D/g,'').slice(0,13);
-    const parts = [d.slice(0,1), d.slice(1,5), d.slice(5,10), d.slice(10,12), d.slice(12,13)];
-    this.value = parts.filter(Boolean).join('-');
-  };
-
-  // Patient login
-  document.getElementById('btnPatientLogin').onclick = async () => {
-    const hn = document.getElementById('patientHN').value.trim();
-    const id = document.getElementById('patientID').value;
-    const btn = document.getElementById('btnPatientLogin');
-    btn.disabled = true; btn.textContent = 'กำลังตรวจสอบ...';
-    try {
-      await signInPatient(hn, id);
-      await supaLoad();
-      setTab('home');
-    } catch(e) {
-      toast(e.message || 'ข้อมูลไม่ถูกต้อง กรุณาลองใหม่');
-    } finally {
-      btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
-    }
-  };
-
-  // Staff login
-  document.getElementById('btnStaffLogin').onclick = async () => {
-    const email = document.getElementById('staffEmail').value.trim();
-    const pass  = document.getElementById('staffPass').value;
-    const btn   = document.getElementById('btnStaffLogin');
-    btn.disabled = true; btn.textContent = 'กำลังตรวจสอบ...';
-    try {
-      await signInStaff(email, pass);
-      await supaLoad();
-      const staffMode = await isStaff();
-      if (staffMode) { go('staffDashboard'); }
-      else { setTab('home'); }
-    } catch(e) {
-      toast(e.message || 'เข้าสู่ระบบไม่สำเร็จ');
-    } finally {
-      btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
-    }
-  };
-
-  // Demo mode
-  document.getElementById('btnDemo').onclick = async () => {
-    const btn = document.getElementById('btnDemo');
-    btn.disabled = true; btn.textContent = 'กำลังโหลด...';
-    try {
-      await supaInit(); await supaLoad(); setTab('home');
-    } catch(e) {
-      toast('เกิดข้อผิดพลาด ลองใหม่');
-      btn.disabled = false; btn.textContent = 'ทดลองใช้งาน (Demo)';
-    }
-  };
-  renderTabbar();
-}
 
 /* ============================================================
    STAFF DASHBOARD + QR SCANNER
@@ -786,7 +648,9 @@ const VIEWS = {
   /* ---------- BOOKING step 2 ---------- */
   bookDate() {
     const b = State.booking;
+    if (!b?.treatment) { go('book'); return ''; }
     const t = TREATMENTS.find(x => x.id === b.treatment);
+    if (!t) { go('book'); return ''; }
     const dates = nextDates(8);
     return `
     <div class="pagehead">
@@ -849,7 +713,9 @@ const VIEWS = {
   /* ---------- SUCCESS ---------- */
   bookDone() {
     const b = State.booking;
+    if (!b?.treatment) { go('home'); return ''; }
     const t = TREATMENTS.find(x => x.id === b.treatment);
+    if (!t) { go('home'); return ''; }
     return `
     <div class="success">
       <div class="success__ic">${icon('check')}</div>
@@ -864,9 +730,10 @@ const VIEWS = {
 
   /* ---------- APPOINTMENTS ---------- */
   appts() {
+    const upcoming = APPOINTMENTS.filter(a => a.date >= TODAY_ISO);
     return `
     <div class="pagehead">
-      <div><div class="pagehead__title">นัดหมาย</div><div class="pagehead__sub">${APPOINTMENTS.length} นัดที่กำลังจะถึง</div></div>
+      <div><div class="pagehead__title">นัดหมาย</div><div class="pagehead__sub">${upcoming.length} นัดที่กำลังจะถึง</div></div>
       <div style="flex:1"></div>
       <div class="iconbtn" data-tab2="book">${icon('plus')}</div>
     </div>
@@ -874,7 +741,7 @@ const VIEWS = {
       <div class="seg__b is-active" data-seg="up">กำลังจะถึง</div>
       <div class="seg__b" data-seg="past">ผ่านมาแล้ว</div>
     </div></div>
-    <div class="pad stack" id="apptList" style="margin-top:14px">${APPOINTMENTS.map(apptCard).join('')}</div>
+    <div class="pad stack" id="apptList" style="margin-top:14px">${upcoming.map(apptCard).join('')}</div>
     <div class="spacer"></div>`;
   },
 
@@ -990,12 +857,15 @@ function apptCard(a) {
 /* ---------- date generator ---------- */
 const _today = new Date();
 const TODAY = { y: _today.getFullYear(), m: _today.getMonth() + 1, d: _today.getDate() };
+const TODAY_ISO = `${TODAY.y}-${String(TODAY.m).padStart(2,'0')}-${String(TODAY.d).padStart(2,'0')}`;
+function daysInMonth(y, mm) {
+  const leap = y%400===0 || (y%4===0 && y%100!==0);
+  return [31,28,31,30,31,30,31,31,30,31,30,31][mm-1] + (mm===2 && leap ? 1 : 0);
+}
 function nextDates(n) {
   const out = []; let { y, m, d } = TODAY;
-  const isLeap = y%400===0 || (y%4===0 && y%100!==0);
-  const dim = mm => [31,28,31,30,31,30,31,31,30,31,30,31][mm-1] + (mm===2 && isLeap ? 1 : 0);
   for (let i = 0; i < n; i++) {
-    d++; if (d > dim(m)) { d = 1; m++; if (m > 12) { m = 1; y++; } }
+    d++; if (d > daysInMonth(y, m)) { d = 1; m++; if (m > 12) { m = 1; y++; } }
     const dow = zellerDow(y, m, d);
     out.push({ iso: `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`, d, dow, off: dow === 0 });
   }
@@ -1047,7 +917,7 @@ function bindView() {
         <button class="btn btn--ghost btn--sm" style="margin:14px auto 0" data-go-history>เปิดประวัติ</button></div>`;
       list.querySelector('[data-go-history]').onclick = () => go('history');
     } else {
-      list.innerHTML = APPOINTMENTS.map(apptCard).join('');
+      list.innerHTML = APPOINTMENTS.filter(a => a.date >= TODAY_ISO).map(apptCard).join('');
       // bind only appt-specific handlers (avoid full bindView re-register)
       list.querySelectorAll('[data-appt-qr]').forEach(el => el.onclick = () => {
         const appt = APPOINTMENTS.find(a => a.id === el.dataset.apptQr);
@@ -1097,8 +967,7 @@ function bindView() {
 
   q('[data-menu]').forEach(el => el.onclick = () => {
     const a = el.dataset.menu;
-    if (a === 'courses') setTab('courses');
-    else if (a === 'history') go('history');
+    if (a === 'history') go('history');
     else toast('ฟีเจอร์นี้อยู่ระหว่างพัฒนา');
   });
 
