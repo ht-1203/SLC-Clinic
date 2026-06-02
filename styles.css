@@ -45,38 +45,14 @@ html, body { height: 100%; }
 body {
   font-family: var(--font-th);
   color: var(--ink);
-  background: #f0f4f8;
+  background: #e8edf2;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-/* ============================================================
-   DESKTOP NOTICE
-   ============================================================ */
-.desktop-notice {
-  display: none;
-  min-height: 100vh; align-items: center; justify-content: center;
-  background: linear-gradient(135deg, #071828 0%, #0D2030 60%, #152E40 100%);
-}
-.dn-card {
-  background: #fff; border-radius: 28px;
-  padding: 40px 36px; width: 360px;
-  display: flex; flex-direction: column; align-items: center; gap: 16px;
-  box-shadow: 0 32px 80px rgba(0,0,0,.4);
-  text-align: center;
-}
-.dn-brand { font-family: var(--font-en); font-size: 17px; font-weight: 700; color: var(--ink); letter-spacing: .04em; }
-.dn-phone-icon { width: 64px; height: 64px; border-radius: 50%; background: var(--bg-2); display: grid; place-items: center; }
-.dn-title { font-family: var(--font-dp); font-size: 20px; font-weight: 600; color: var(--ink); }
-.dn-desc { font-size: 13.5px; color: var(--muted); line-height: 1.65; }
-.dn-url { font-size: 12px; color: var(--brand); font-family: var(--font-en); font-weight: 600; }
-
 /* Logo image utility */
 .logo-img { display: block; object-fit: contain; }
 .logo-img--hero { filter: brightness(0) invert(1); }
-
-@media (max-width: 767px) { .desktop-notice { display: none !important; } }
-@media (min-width: 768px) { .desktop-notice { display: flex; } }
 
 /* ============================================================
    APP SHELL

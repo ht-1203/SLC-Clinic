@@ -16,33 +16,7 @@
 </head>
 <body>
 
-  <!-- ====== DESKTOP NOTICE (hidden on mobile) ====== -->
-  <div id="desktop-notice" class="desktop-notice">
-    <div class="dn-card">
-      <!-- Logo -->
-      <img src="slc-logo.png" style="width:200px;height:auto;display:block;" alt="SLC Clinics & Hospital" />
-
-      <p class="dn-brand">SLC Clinics &amp; Hospital</p>
-
-      <!-- Phone icon -->
-      <div class="dn-phone-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#2BBDCE" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="32" height="32">
-          <rect x="5" y="2" width="14" height="20" rx="3"/><path d="M9 5.5h6"/>
-        </svg>
-      </div>
-
-      <h2 class="dn-title">แอปนี้ออกแบบสำหรับมือถือ</h2>
-      <p class="dn-desc">กรุณาเปิดบนสมาร์ทโฟน หรือสแกน QR code ด้านล่าง</p>
-
-      <!-- QR Code -->
-      <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=https%3A%2F%2Fht-1203.github.io%2FSLC-Clinic%2F&color=0D2030&bgcolor=ffffff&margin=1"
-        width="160" height="160" alt="QR Code" style="display:block;border-radius:10px;border:1px solid #eee;" />
-
-      <p class="dn-url">ht-1203.github.io/SLC-Clinic</p>
-    </div>
-  </div>
-
-  <!-- ====== SPLASH SCREEN ====== -->
+  <!-- Splash -->
   <div id="splash" class="splash" style="display:none">
     <div class="splash-ring splash-ring--1"></div>
     <div class="splash-ring splash-ring--2"></div>
@@ -52,42 +26,26 @@
     </div>
   </div>
 
-  <!-- ====== MOBILE APP ====== -->
-  <div id="app" class="app-shell" style="display:none">
-
-    <!-- Loading screen -->
+  <!-- App -->
+  <div id="app" class="app-shell">
     <div id="loading" class="loading-screen">
       <div class="ls-content">
-        <img src="slc-logo.png" width="120" height="120" alt="SLC" class="logo-img" />
+        <img src="slc-logo.png" width="110" height="110" alt="SLC" class="logo-img" />
         <p class="ls-brand">SLC Clinics &amp; Hospital</p>
         <div class="ls-dots"><span></span><span></span><span></span></div>
       </div>
     </div>
-
-    <!-- App content -->
     <main id="view" class="view"></main>
     <nav id="tabbar" class="tabbar"></nav>
-
   </div>
 
-  <!-- Toast (global) -->
+  <!-- Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script src="icons.js"></script>
   <script src="data.js"></script>
   <script src="app.js"></script>
   <script>
-    // Desktop notice: show only on wide screens
-    var dn = document.getElementById('desktop-notice');
-    if (window.innerWidth >= 768) {
-      dn.style.display = 'flex';
-    } else {
-      dn.style.display = 'none';
-    }
-
-    // QR code now uses static API URL — no JS needed
-
-    // Load Supabase async
     (function(){
       var s = document.createElement('script');
       s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';

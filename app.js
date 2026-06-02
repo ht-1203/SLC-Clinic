@@ -1156,10 +1156,7 @@ async function bgSync() {
 }
 
 function boot() {
-  const appEl = document.getElementById('app');
-  if (appEl) appEl.style.display = '';
   try { document.getElementById('loading').remove(); } catch(_) {}
-  // แสดง Role Selection ทุกครั้งก่อนเสมอ
   showSplash(() => showRoleSelect());
 }
 
