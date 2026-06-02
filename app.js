@@ -1134,15 +1134,18 @@ async function bgSync() {
 }
 
 function boot() {
+  // แสดง app ทันที ก่อนทำอะไร
+  const appEl = document.getElementById('app');
+  if (appEl) appEl.style.display = '';
   try { document.getElementById('loading').remove(); } catch(_) {}
+
   const hasPin  = !!localStorage.getItem(PIN_KEY);
   const hasRole = !!localStorage.getItem(ROLE_KEY);
+
   showSplash(() => {
     if (hasPin && hasRole) {
-      // Returning user → PIN only
       showPIN(startApp);
     } else {
-      // New / logged-out → role selection → credentials → PIN
       showRoleSelect();
     }
   });

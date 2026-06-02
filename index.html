@@ -77,21 +77,13 @@
   <script src="data.js"></script>
   <script src="app.js"></script>
   <script>
-    // Detect desktop vs mobile
-    var isMobile = window.innerWidth < 768;
+    // Desktop notice: show only on wide screens
     var dn = document.getElementById('desktop-notice');
-    var app = document.getElementById('app');
-
-    if (isMobile) {
+    if (window.innerWidth >= 768) {
+      dn.style.display = 'flex';
+    } else {
       dn.style.display = 'none';
-      app.style.display = '';
     }
-
-    // Desktop: show QR code + option to continue
-    document.getElementById('dnContinue').onclick = function() {
-      dn.style.display = 'none';
-      app.style.display = '';
-    };
 
     // QR code now uses static API URL — no JS needed
 

@@ -440,11 +440,12 @@ body {
   100% { transform: scale(1);  opacity: 0; }
 }
 
-/* shared layer animation */
+/* shared layer — fixed ครอบ viewport เสมอ ไม่ขึ้นกับ parent */
 .role-screen, .cred-screen, .pin-screen {
-  position: absolute; inset: 0; z-index: 8000;
+  position: fixed; inset: 0; z-index: 8000;
   background: var(--bg); animation: rise .28s ease;
   display: flex; flex-direction: column;
+  max-width: 430px; left: 50%; transform: translateX(-50%);
 }
 .layer-exit { animation: pin-fade-out .38s ease forwards !important; }
 
