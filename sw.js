@@ -1,5 +1,5 @@
 /* SLC Clinic — Service Worker */
-const CACHE = 'slc-v1';
+const CACHE = 'slc-v3';
 const STATIC = [
   '/', '/index.html', '/styles.css', '/app.js',
   '/data.js', '/icons.js', '/supabase.js',
