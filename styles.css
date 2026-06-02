@@ -461,22 +461,22 @@ body {
   background: var(--bg); border-radius: 20px; padding: 8px; }
 .role-title { font-family: var(--font-dp); font-size: 26px; font-weight: 600; color: var(--ink); }
 .role-sub { font-size: 14px; color: var(--muted); }
-.role-cards { display: flex; flex-direction: column; gap: 12px; width: 100%; margin-top: 8px; }
+/* 2 cards side by side */
+.role-cards { display: flex; flex-direction: row; gap: 14px; width: 100%; margin-top: 8px; }
 .role-card {
-  display: flex; align-items: center; gap: 16px;
-  padding: 20px 20px; border: 2px solid var(--line); border-radius: 18px;
-  background: var(--bg); cursor: pointer; transition: border-color .15s, background .15s;
-  text-align: left;
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  gap: 12px; padding: 28px 10px 24px;
+  border: 2px solid var(--line); border-radius: 20px;
+  background: var(--bg); cursor: pointer;
+  transition: border-color .15s, background .15s; text-align: center;
 }
 .role-card:active { border-color: var(--brand); background: var(--bg-2); }
-.role-card__icon { width: 52px; height: 52px; border-radius: 16px; flex-shrink: 0;
+.role-card__icon { width: 54px; height: 54px; border-radius: 16px;
   background: var(--bg-2); display: grid; place-items: center; }
 .role-card__icon svg { width: 24px; height: 24px; stroke: var(--brand); }
-.role-card__text { flex: 1; }
-.role-card__label { font-size: 16px; font-weight: 700; color: var(--ink); }
-.role-card__hint { font-size: 13px; color: var(--muted); margin-top: 2px; }
-.role-card__arrow { color: var(--line-2); flex-shrink: 0; }
-.role-card__arrow svg { width: 18px; height: 18px; stroke: var(--muted); }
+.role-card__text { display: flex; flex-direction: column; gap: 4px; }
+.role-card__label { font-size: 14px; font-weight: 700; color: var(--ink); line-height: 1.3; }
+.role-card__hint { font-size: 11.5px; color: var(--muted); line-height: 1.4; }
 
 /* ============================================================
    CREDENTIALS SCREEN
