@@ -71,6 +71,7 @@ function showRoleSelect() {
           <span class="role-card__arrow">${icon('chevright','ic--sm')}</span>
         </button>
       </div>
+      <button class="role-demo" id="roleDemo">${icon('smile','ic--sm')} ทดลองใช้งาน (Demo)</button>
     </div>`, 'role-screen');
 
   el.querySelectorAll('[data-role]').forEach(btn => {
@@ -81,15 +82,15 @@ function showRoleSelect() {
       const hasPin = !!localStorage.getItem(pinKey);
       removeLayer(el, () => {
         if (hasPin) {
-          // เคย login ไว้แล้ว → ใส่ PIN ได้เลย
           showPIN(startApp, pinKey);
         } else {
-          // ครั้งแรก → กรอก credentials ก่อน
           showCredentials(role);
         }
       });
     };
   });
+
+  el.querySelector('#roleDemo').onclick = () => removeLayer(el, startApp);
 }
 
 /* ============================================================
