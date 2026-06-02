@@ -90,13 +90,54 @@ async function supaVerifyOTP(email, token) {
   return _user;
 }
 
+/* ---- Profile ---- */
+function supaGetUser() { return _user; }
+
+async function supaHasProfile() {
+  if (!_user) return false;
+  const { data } = await _supa.from('profiles').select('user_id').eq('user_id', _user.id).single();
+  return !!data;
+}
+
+async function supaSaveProfile(p) {
+  if (!_user) return;
+  const { error } = await _supa.from('profiles').upsert({
+    user_id: _user.id,
+    hn: p.hn || null,
+    full_name: p.fullName,
+    initials: p.initials || p.fullName.charAt(0),
+    tier: (p.tier || 'MEMBER').toUpperCase(),
+    phone: p.phone || null,
+    member_since: p.memberSince || String(new Date().getFullYear() + 543),
+  });
+  if (error) throw new Error(error.message);
+}
+
+/* ---- Staff: today's appointments with patient + package info ---- */
+async function supaLoadStaffAppts(dateIso) {
+  const { data, error } = await _supa
+    .from('appointments')
+    .select('*, packages(name, cat), profiles(full_name, hn, tier)')
+    .eq('date', dateIso)
+    .order('time');
+  if (error) throw new Error(error.message);
+  return data || [];
+}
+
+async function supaCompleteAppt(apptId) {
+  const { error } = await _supa.from('appointments')
+    .update({ status: 'completed' }).eq('id', apptId);
+  if (error) throw new Error(error.message);
+}
+
 /* ---- load user data ---- */
 async function supaLoad() {
   if (!_user) return;
 
-  const [pkgRes, apptRes] = await Promise.all([
+  const [pkgRes, apptRes, profileRes] = await Promise.all([
     _supa.from('packages').select('*').eq('user_id', _user.id).order('created_at'),
     _supa.from('appointments').select('*').eq('user_id', _user.id).order('date'),
+    _supa.from('profiles').select('*').eq('user_id', _user.id).single(),
   ]);
 
   if (pkgRes.error) throw new Error('Load packages: ' + pkgRes.error.message);
@@ -133,6 +174,20 @@ async function supaLoad() {
     const c = COURSES.find(c => c.id === t.id);
     t.owned = !!(c && remaining(c) > 0);
   });
+
+  // Populate USER from profile if exists
+  if (profileRes.data) {
+    const p = profileRes.data;
+    Object.assign(USER, {
+      id: p.hn ? `CU-${p.hn}` : USER.id,
+      name: p.full_name?.split(' ')[0] || USER.name,
+      fullName: p.full_name || USER.fullName,
+      initials: p.initials || USER.initials,
+      tier: (p.tier || USER.tier) + ' MEMBER',
+      phone: p.phone || USER.phone,
+      memberSince: p.member_since || USER.memberSince,
+    });
+  }
 }
 
 /* ---- seed demo data for new user ---- */

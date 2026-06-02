@@ -243,6 +243,64 @@ function showPIN(onSuccess, pinKey) {
   obs.observe(document.getElementById('app'), { childList: true });
 }
 
+/* ============================================================
+   PROFILE SETUP — แสดงเมื่อ patient เข้าครั้งแรก (ไม่มี profile)
+   ============================================================ */
+function showProfileSetup(onDone) {
+  const el = mountLayer(`
+    <div class="cred-wrap">
+      <img src="slc-logo.png" class="cred-logo" alt="SLC" />
+      <h2 class="cred-title">ตั้งค่าโปรไฟล์</h2>
+      <p style="font-size:13px;color:var(--muted);text-align:center;margin-top:-8px">กรุณากรอกข้อมูลเพื่อเริ่มใช้งาน</p>
+      <div class="cred-field">
+        <label>ชื่อ-นามสกุล</label>
+        <div class="cred-input-wrap">
+          ${icon('user','ic--sm')}
+          <input id="pfName" type="text" placeholder="ชื่อ นามสกุล" autocomplete="name" />
+        </div>
+      </div>
+      <div class="cred-field">
+        <label>เบอร์โทรศัพท์</label>
+        <div class="cred-input-wrap">
+          ${icon('phone','ic--sm')}
+          <input id="pfPhone" type="tel" inputmode="numeric" placeholder="08x-xxx-xxxx" autocomplete="tel" />
+        </div>
+      </div>
+      <button class="btn btn--brand" id="pfSave">บันทึกและเริ่มใช้งาน</button>
+      <p class="cred-note" id="pfErr"></p>
+    </div>`, 'cred-screen');
+
+  el.querySelector('#pfSave').onclick = async () => {
+    const name  = el.querySelector('#pfName').value.trim();
+    const phone = el.querySelector('#pfPhone').value.trim();
+    const err   = el.querySelector('#pfErr');
+    const btn   = el.querySelector('#pfSave');
+    if (!name) { err.textContent = 'กรุณากรอกชื่อ-นามสกุล'; return; }
+    btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+    try {
+      const u = supaGetUser();
+      const email = u?.email || '';
+      const hn = email.startsWith('hn.') ? email.replace('hn.','').replace('@slc-clinic.internal','') : '';
+      const profile = {
+        hn, fullName: name, initials: name.charAt(0),
+        tier: 'MEMBER', phone,
+        memberSince: String(new Date().getFullYear() + 543),
+      };
+      await supaSaveProfile(profile);
+      Object.assign(USER, {
+        id: hn ? `CU-${hn}` : USER.id,
+        name: name.split(' ')[0], fullName: name,
+        initials: name.charAt(0), phone,
+        tier: 'GOLD MEMBER', memberSince: profile.memberSince,
+      });
+      removeLayer(el, () => { onDone(); render(); });
+    } catch(e) {
+      err.textContent = e.message || 'บันทึกไม่สำเร็จ';
+      btn.disabled = false; btn.textContent = 'บันทึกและเริ่มใช้งาน';
+    }
+  };
+}
+
 /* ---- logout helper ---- */
 function doLogout() {
   const role = localStorage.getItem(ROLE_KEY);
@@ -557,11 +615,23 @@ const VIEWS = {
   /* ---------- HOME ---------- */
   home() {
     const active = COURSES.filter(c => remaining(c) > 0);
+    const tomorrowISO = nextDates(1)[0]?.iso;
+    const soonAppts = APPOINTMENTS.filter(a =>
+      (a.date === TODAY_ISO || a.date === tomorrowISO) && a.status !== 'completed'
+    );
     return `
     <div class="topbar">
       <div class="searchbar">${icon('search')}<input placeholder="ค้นหาคอร์ส หรือ หัตถการ..." id="search-input" autocomplete="off" /></div>
       <div class="avatar-btn" data-go="profile">${icon('user')}</div>
     </div>
+    ${soonAppts.length ? `<div class="pad" style="padding-top:10px">
+      <div class="note" style="cursor:pointer" data-tab2="appts">
+        ${icon('bell')}
+        <div>
+          <div class="note__t">นัดหมายที่ใกล้ถึง</div>
+          <div class="note__d">${soonAppts[0].date === TODAY_ISO ? 'วันนี้' : 'พรุ่งนี้'} เวลา ${soonAppts[0].time} น. · ${courseById(soonAppts[0].courseId)?.name || 'นัดหมาย'}</div>
+        </div>
+      </div></div>` : ''}
     <div class="deck">
       ${active.map(c => `<div class="deck__cell">${stampCard(c)}</div>`).join('')}
     </div>
@@ -785,14 +855,91 @@ const VIEWS = {
       <div class="card card--pad0">
         ${[
           { i: 'history', t: 'ประวัติการใช้บริการ', act: 'history' },
-          { i: 'card', t: 'ใบเสร็จและการชำระเงิน', act: 'soon' },
-          { i: 'phone', t: 'ติดต่อคลินิก', act: 'soon' },
+          { i: 'receipt', t: 'ใบเสร็จและการชำระเงิน', act: 'receipts' },
+          { i: 'phone', t: 'ติดต่อคลินิก', act: 'contact' },
         ].map(m => `<div class="menu__item" data-menu="${m.act}">
           ${icon(m.i)}<div class="menu__item__t">${m.t}</div><span class="ic menu__item__chev">${icon('chevright','ic--sm')}</span></div>`).join('')}
       </div>
       <button class="btn btn--ghost" data-act="logout" style="color:var(--rose)">${icon('logout')} ออกจากระบบ</button>
       <div class="center muted" style="font-size:11.5px">${CLINIC.name} · v1.0.0</div>
     </div>`;
+  },
+
+  /* ---------- RECEIPTS ---------- */
+  receipts() {
+    const items = [...APPOINTMENTS]
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .map(a => { const c = courseById(a.courseId); return c ? { ...a, c } : null; })
+      .filter(Boolean);
+    return `
+    <div class="pagehead">
+      <div class="iconbtn" data-back="profile">${icon('chevleft')}</div>
+      <div><div class="pagehead__title">ใบเสร็จ</div><div class="pagehead__sub">ประวัติการนัดหมาย</div></div>
+    </div>
+    <div class="pad">
+      ${items.length ? `<div class="card card--pad0">
+        ${items.map(a => `<div class="kv">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.c.name}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">${fmtFull(a.date)} · ${a.time} น.</div>
+          </div>
+          <span class="kv__v" style="margin-left:12px">${a.c.price ? fmtBaht(Math.round(a.c.price / a.c.total)) : 'ใช้สิทธิ์'}</span>
+        </div>`).join('')}
+      </div>` : `<div class="empty">${icon('receipt','ic--lg')}<p>ยังไม่มีประวัติการนัด</p></div>`}
+    </div>
+    <div class="spacer"></div>`;
+  },
+
+  /* ---------- CONTACT ---------- */
+  contact() {
+    return `
+    <div class="pagehead">
+      <div class="iconbtn" data-back="profile">${icon('chevleft')}</div>
+      <div><div class="pagehead__title">ติดต่อคลินิก</div></div>
+    </div>
+    <div class="pad stack">
+      <div class="card card--pad0">
+        <div class="kv"><span class="kv__k">ชื่อ</span><span class="kv__v">${CLINIC.name}</span></div>
+        <div class="kv"><span class="kv__k">สาขา</span><span class="kv__v">${CLINIC.branch}</span></div>
+        <div class="kv"><span class="kv__k">จันทร์–ศุกร์</span><span class="kv__v">09:00–19:00 น.</span></div>
+        <div class="kv" style="border:0"><span class="kv__k">เสาร์</span><span class="kv__v">09:00–17:00 น.</span></div>
+      </div>
+      <div class="card card--pad0">
+        <div class="kv">
+          <span class="kv__k">${icon('phone','ic--sm')} โทรศัพท์</span>
+          <a href="tel:020000000" class="kv__v" style="color:var(--brand);text-decoration:none">02-000-0000</a>
+        </div>
+        <div class="kv">
+          <span class="kv__k">LINE OA</span>
+          <a href="https://line.me/R/ti/p/@slcclinic" class="kv__v" style="color:var(--brand);text-decoration:none">@slcclinic</a>
+        </div>
+        <div class="kv" style="border:0">
+          <span class="kv__k">อีเมล</span>
+          <a href="mailto:info@slc-group.com" class="kv__v" style="color:var(--brand);text-decoration:none">info@slc-group.com</a>
+        </div>
+      </div>
+      <div class="note">${icon('info')}<div>
+        <div class="note__t">เปลี่ยน / ยกเลิกนัด</div>
+        <div class="note__d">กรุณาแจ้งล่วงหน้าอย่างน้อย 24 ชั่วโมง ทางโทรศัพท์หรือ LINE OA</div>
+      </div></div>
+    </div>
+    <div class="spacer"></div>`;
+  },
+
+  /* ---------- STAFF DASHBOARD ---------- */
+  staffDashboard() {
+    return `
+    <div class="topbar">
+      <div style="flex:1">
+        <div style="font-family:var(--font-dp);font-size:clamp(19px,5.6vw,24px);font-weight:600">Staff Dashboard</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">นัดวันนี้ · ${TODAY.d} ${['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][TODAY.m-1]}</div>
+      </div>
+      <div class="avatar-btn" data-go="profile">${icon('user')}</div>
+    </div>
+    <div id="staffList" class="pad stack" style="margin-top:8px">
+      <div class="empty">${icon('clock','ic--lg')}<p>กำลังโหลด...</p></div>
+    </div>
+    <div class="spacer"></div>`;
   },
 };
 
@@ -967,9 +1114,56 @@ function bindView() {
 
   q('[data-menu]').forEach(el => el.onclick = () => {
     const a = el.dataset.menu;
-    if (a === 'history') go('history');
+    if (a === 'history')  go('history');
+    else if (a === 'receipts') go('receipts');
+    else if (a === 'contact')  go('contact');
     else toast('ฟีเจอร์นี้อยู่ระหว่างพัฒนา');
   });
+
+  /* Staff dashboard — โหลด appointments ทุกคนวันนี้จาก Supabase */
+  const staffList = $view.querySelector('#staffList');
+  if (staffList) {
+    supaLoadStaffAppts(TODAY_ISO).then(appts => {
+      if (!appts.length) {
+        staffList.innerHTML = `<div class="empty">${icon('calendar','ic--lg')}<p>ไม่มีนัดวันนี้</p></div>`;
+        return;
+      }
+      staffList.innerHTML = appts.map(a => `
+        <div class="card" data-staff-appt="${a.id}">
+          <div class="row" style="padding:0;border:0">
+            <div class="row__ic" style="background:var(--ink);color:#fff;flex-direction:column;gap:2px">
+              <div style="font-family:var(--font-dp);font-weight:700;font-size:15px;line-height:1">${a.time?.slice(0,5) || '--'}</div>
+              <div style="font-size:9px;letter-spacing:.04em">น.</div>
+            </div>
+            <div class="row__main">
+              <div class="row__t">${a.profiles?.full_name || 'ผู้ป่วย'}</div>
+              <div class="row__s">${a.packages?.name || a.package_id || '-'}${a.profiles?.hn ? ' · HN ' + a.profiles.hn : ''}</div>
+            </div>
+            <span class="tag tag--${a.status === 'completed' ? 'ink' : a.status === 'confirmed' ? 'ok' : 'mute'}">${
+              a.status === 'completed' ? 'เสร็จแล้ว' : a.status === 'confirmed' ? 'ยืนยัน' : 'รอยืนยัน'
+            }</span>
+          </div>
+          ${a.status !== 'completed' ? `<div style="margin-top:10px">
+            <button class="btn btn--dark btn--sm" style="width:100%" data-checkin="${a.id}">
+              ${icon('check','ic--sm')} เช็คอินสำเร็จ
+            </button></div>` : ''}
+        </div>`).join('');
+      staffList.querySelectorAll('[data-checkin]').forEach(btn => {
+        btn.onclick = async () => {
+          btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+          try {
+            await supaCompleteAppt(btn.dataset.checkin);
+            const card = btn.closest('.card');
+            card.querySelector('.tag').outerHTML = `<span class="tag tag--ink">เสร็จแล้ว</span>`;
+            btn.closest('div').remove();
+            toast('เช็คอินสำเร็จ');
+          } catch(e) { toast('บันทึกไม่สำเร็จ'); btn.disabled = false; btn.textContent = 'เช็คอินสำเร็จ'; }
+        };
+      });
+    }).catch(() => {
+      staffList.innerHTML = `<div class="empty">${icon('calendar','ic--lg')}<p>ไม่มีนัดวันนี้ หรือ Supabase ไม่พร้อม</p></div>`;
+    });
+  }
 
   q('[data-act]').forEach(el => el.onclick = async () => {
     const a = el.dataset.act;
@@ -1039,7 +1233,7 @@ function waitSupa(maxMs) {
 
 /* background sync — ไม่ block UI เลย */
 async function bgSync() {
-  const ready = await waitSupa(10000); // รอ Supabase สูงสุด 10 วิ
+  const ready = await waitSupa(10000);
   if (!ready) return;
   try {
     const has = await supaCheckSession();
@@ -1047,6 +1241,12 @@ async function bgSync() {
     await supaLoad();
     lsSave();
     render();
+    // แสดง profile setup สำหรับ patient ใหม่ที่ยังไม่มีโปรไฟล์
+    const role = localStorage.getItem(ROLE_KEY);
+    if (role !== 'staff') {
+      const hasProfile = await supaHasProfile().catch(() => true);
+      if (!hasProfile) showProfileSetup(() => {});
+    }
   } catch(e) { console.warn('bgSync:', e.message); }
 }
 
@@ -1056,14 +1256,17 @@ function boot() {
 }
 
 function startApp() {
-
-  // โหลดข้อมูล (localStorage หรือ default จาก data.js)
   lsLoad();
-
-  // เปิดแอป
-  try { setTab('home'); } catch(e) { console.error('render error:', e); }
-
-  // Supabase sync ใน background — ไม่กระทบการแสดงผล
+  try {
+    const role = localStorage.getItem(ROLE_KEY);
+    if (role === 'staff') {
+      State.tab = 'home'; _lastTab = null;
+      go('staffDashboard');
+      renderTabbar();
+    } else {
+      setTab('home');
+    }
+  } catch(e) { console.error('render error:', e); }
   bgSync();
 }
 boot();

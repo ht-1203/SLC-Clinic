@@ -69,10 +69,34 @@ CREATE POLICY "staff_write_own" ON staff_roles FOR ALL USING (auth.uid() = user_
 
 -- staff สามารถอ่านนัดหมาย + packages ทุกคน (เพื่อ QR scan check-in)
 CREATE POLICY "staff_read_all_appts" ON appointments
-  FOR SELECT USING (
-    EXISTS (SELECT 1 FROM staff_roles WHERE user_id = auth.uid())
-  );
+  FOR SELECT USING (EXISTS (SELECT 1 FROM staff_roles WHERE user_id = auth.uid()));
 CREATE POLICY "staff_update_appts" ON appointments
-  FOR UPDATE USING (
-    EXISTS (SELECT 1 FROM staff_roles WHERE user_id = auth.uid())
-  );
+  FOR UPDATE USING (EXISTS (SELECT 1 FROM staff_roles WHERE user_id = auth.uid()));
+
+-- 5. โปรไฟล์ผู้ป่วย
+CREATE TABLE IF NOT EXISTS profiles (
+  user_id      UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  hn           TEXT,
+  full_name    TEXT NOT NULL,
+  initials     TEXT,
+  tier         TEXT NOT NULL DEFAULT 'MEMBER'
+                CHECK (tier IN ('MEMBER','SILVER','GOLD','PLATINUM')),
+  phone        TEXT,
+  member_since TEXT,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "users_own_profile"   ON profiles;
+DROP POLICY IF EXISTS "staff_read_profiles" ON profiles;
+CREATE POLICY "users_own_profile" ON profiles
+  FOR ALL    USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "staff_read_profiles" ON profiles
+  FOR SELECT USING (EXISTS (SELECT 1 FROM staff_roles WHERE user_id = auth.uid()));
+
+-- staff อ่าน packages ทุกคน (เพื่อ dashboard)
+DROP POLICY IF EXISTS "staff_read_packages"   ON packages;
+DROP POLICY IF EXISTS "staff_update_packages" ON packages;
+CREATE POLICY "staff_read_packages"   ON packages
+  FOR SELECT USING (EXISTS (SELECT 1 FROM staff_roles WHERE user_id = auth.uid()));
+CREATE POLICY "staff_update_packages" ON packages
+  FOR UPDATE USING (EXISTS (SELECT 1 FROM staff_roles WHERE user_id = auth.uid()));
