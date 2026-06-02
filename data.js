@@ -4,7 +4,7 @@
    ============================================================ */
 
 const CLINIC = {
-  name: 'Méthode Clinic',
+  name: 'SLC Clinics & Hospital',
   branch: 'สาขาทองหล่อ ซอย 13',
 };
 

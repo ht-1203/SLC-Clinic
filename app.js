@@ -367,7 +367,7 @@ function showQRCheckinModal(appt) {
     document.head.appendChild(s);
     return;
   }
-  const screen = document.querySelector('.device__screen');
+  const screen = document.getElementById('app');
   if (screen.querySelector('.qr-overlay')) return;
   const c = courseById(appt.courseId);
   const ov = document.createElement('div');
@@ -606,12 +606,12 @@ function showQRScanner() {
         if (!el) return;
         el.innerHTML = `<div class="qrs-loading">กำลังตรวจสอบ...</div>`;
         try {
-          const { data, error } = await window._supa
+          const { data, error } = await _supa
             .from('appointments').select('*, packages(name)')
             .eq('id', apptId).single();
           if (error || !data) throw new Error('ไม่พบนัดหมาย');
           // Mark confirmed
-          await window._supa.from('appointments')
+          await _supa.from('appointments')
             .update({ status: 'confirmed' }).eq('id', apptId);
           el.innerHTML = `
             <div class="qrs-success">
@@ -696,7 +696,7 @@ const VIEWS = {
     return `
     <div class="topbar">
       <div class="searchbar">${icon('search')}<input placeholder="ค้นหาคอร์ส หรือ หัตถการ..." id="search-input" autocomplete="off" /></div>
-      <div class="avatar-btn" data-tab2="profile">${icon('user')}</div>
+      <div class="avatar-btn" data-go="profile">${icon('user')}</div>
     </div>
     <div class="deck">
       ${active.map(c => `<div class="deck__cell">${stampCard(c)}</div>`).join('')}
@@ -714,7 +714,7 @@ const VIEWS = {
       <div><div class="pagehead__title">คอร์สของฉัน</div>
         <div class="pagehead__sub">เหลือทั้งหมด ${total} ครั้ง · ${active.length} คอร์ส</div></div>
       <div style="flex:1"></div>
-      <div class="iconbtn" data-tab2="profile">${icon('user')}</div>
+      <div class="iconbtn" data-go="profile">${icon('user')}</div>
     </div>
     <div class="pad"><div class="card card--pad0">
       ${active.map(c => courseRow(c)).join('')}
@@ -764,7 +764,7 @@ const VIEWS = {
 
   /* ---------- BOOKING step 1 ---------- */
   book() {
-    if (!State.booking) State.booking = { treatment: null, date: null, time: null };
+    State.booking = { treatment: null, date: null, time: null };
     const b = State.booking;
     return `
     <div class="pagehead">
@@ -987,7 +987,8 @@ function apptCard(a) {
 }
 
 /* ---------- date generator ---------- */
-const TODAY = { y: 2026, m: 5, d: 30 };
+const _today = new Date();
+const TODAY = { y: _today.getFullYear(), m: _today.getMonth() + 1, d: _today.getDate() };
 function nextDates(n) {
   const out = []; let { y, m, d } = TODAY;
   const isLeap = y%400===0 || (y%4===0 && y%100!==0);
@@ -1008,6 +1009,7 @@ function bindView() {
 
   q('[data-tab2]').forEach(el => el.onclick = () => setTab(el.dataset.tab2));
   q('[data-back]').forEach(el => el.onclick = () => go(el.dataset.back));
+  q('[data-go]').forEach(el => el.onclick = () => go(el.dataset.go));
   q('[data-course]').forEach(el => el.onclick = () => go('courseDetail', { id: el.dataset.course }));
 
   q('[data-book-course]').forEach(el => el.onclick = () => {
@@ -1127,11 +1129,9 @@ function bindView() {
   });
 }
 
-/* ---------- PWA service worker — unregister เวอร์ชันเก่าออกก่อน ---------- */
+/* ---------- PWA service worker ---------- */
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(regs => {
-    regs.forEach(r => r.unregister());
-  });
+  navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 
 /* ---------- boot ---------- */
