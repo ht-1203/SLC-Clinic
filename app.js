@@ -231,6 +231,16 @@ function showPIN(onSuccess, pinKey) {
   }
 
   el.querySelectorAll('[data-k]').forEach(b => { b.onclick = () => { if (b.dataset.k !== '') press(b.dataset.k); }; });
+
+  // Desktop: support keyboard input for PIN
+  const onKey = e => {
+    if (e.key >= '0' && e.key <= '9') press(e.key);
+    else if (e.key === 'Backspace') press('⌫');
+  };
+  document.addEventListener('keydown', onKey);
+  // cleanup when screen removed
+  const obs = new MutationObserver(() => { if (!el.parentNode) { document.removeEventListener('keydown', onKey); obs.disconnect(); } });
+  obs.observe(document.getElementById('app'), { childList: true });
 }
 
 /* ---- logout helper ---- */

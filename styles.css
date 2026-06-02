@@ -65,11 +65,53 @@ body {
   position: relative; display: flex; flex-direction: column;
 }
 
-/* Overlay screens: เต็มจอเสมอ ไม่มี max-width */
+/* Overlay screens */
 .role-screen, .cred-screen, .pin-screen {
   position: fixed; inset: 0; z-index: 8000;
   background: var(--bg);
   display: flex; flex-direction: column;
+  /* Smooth slide-in from right */
+  animation: layer-enter .28s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+@keyframes layer-enter {
+  from { opacity: 0; transform: translateX(28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.layer-exit {
+  animation: layer-exit .22s ease forwards !important;
+  pointer-events: none;
+}
+@keyframes layer-exit {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-20px); }
+}
+
+/* Desktop: centered card (เหมือน Google/LINE login) */
+@media (min-width: 768px) {
+  .role-screen, .cred-screen, .pin-screen {
+    background: rgba(0,0,0,.25);
+    backdrop-filter: blur(4px);
+    align-items: center; justify-content: center;
+    animation: layer-enter-desktop .25s ease forwards;
+  }
+  @keyframes layer-enter-desktop {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  .role-wrap, .cred-wrap {
+    background: var(--bg); border-radius: 24px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.18);
+    max-width: 460px; width: 90%; flex: none;
+    padding: 48px 40px;
+    margin: 0;
+  }
+  .pin-screen { background: rgba(0,0,0,.25); }
+  .pin-top { flex: none; max-width: 380px;
+    background: var(--bg); border-radius: 24px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.18);
+    padding: 40px 40px 32px; margin: 0;
+  }
+  .pin-pad { display: none; } /* ใช้ keyboard บน desktop แทน */
 }
 
 /* Content ข้างใน: centered ด้วย max-width เหมือน Lhao Lhao */
