@@ -70,6 +70,11 @@ body {
   .device { width: 100vw; height: 100vh; height: 100dvh; border-radius: 0; padding: 0; }
   .device__screen { border-radius: 0; }
   .device__notch { display: none; }
+  /* ซ่อน status bar จำลอง — บนมือถือจริงมี status bar อยู่แล้ว */
+  .statusbar { display: none; }
+  /* เว้นพื้นที่ notch + home indicator ของ iOS */
+  .view { padding-bottom: calc(116px + env(safe-area-inset-bottom)); }
+  .tabbar { padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
 }
 
 /* ---------- Status bar ---------- */
