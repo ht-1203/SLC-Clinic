@@ -164,53 +164,81 @@ function showSearchResults(term) {
    ============================================================ */
 function renderAuth() {
   $view.innerHTML = `
-  <div class="auth-wrap">
-    <div class="auth-logo">
-      <svg viewBox="0 0 20 13" width="56" height="36" class="auth-butterfly">
-        <path d="M10 9C8 4 2 2 1 6C0 10 5 11 10 9Z"/><path d="M10 9C12 4 18 2 19 6C20 10 15 11 10 9Z"/>
-        <ellipse cx="10" cy="10" rx="1.2" ry="1.8"/>
-      </svg>
-      <div class="auth-brand-name">SLC Clinics &amp; Hospital</div>
-      <div class="auth-brand-sub">ระบบจองหัตถการ & คอร์สความงาม</div>
+  <div class="auth-page">
+
+    <!-- Hero header -->
+    <div class="auth-hero">
+      <div class="auth-hero__bg"></div>
+      <div class="auth-hero__content">
+        <svg viewBox="0 0 20 13" width="40" height="26" style="fill:#fff;opacity:.9">
+          <path d="M10 9C8 4 2 2 1 6C0 10 5 11 10 9Z"/>
+          <path d="M10 9C12 4 18 2 19 6C20 10 15 11 10 9Z"/>
+          <ellipse cx="10" cy="10" rx="1.2" ry="1.8"/>
+        </svg>
+        <h1 class="auth-hero__brand">SLC Clinics &amp; Hospital</h1>
+        <p class="auth-hero__tag">ระบบจองหัตถการ & ติดตามคอร์สความงาม</p>
+      </div>
     </div>
 
-    <!-- Tab switch -->
-    <div class="auth-tabs">
-      <button class="auth-tab is-active" data-tab="patient">ลูกค้า</button>
-      <button class="auth-tab" data-tab="staff">พนักงาน</button>
+    <!-- Login card -->
+    <div class="auth-body">
+
+      <!-- Tab switch -->
+      <div class="auth-tabs">
+        <button class="auth-tab is-active" data-tab="patient">${icon('user','ic--sm')} ลูกค้า</button>
+        <button class="auth-tab" data-tab="staff">${icon('shield','ic--sm')} พนักงาน</button>
+      </div>
+
+      <!-- ===== Patient login ===== -->
+      <div id="tabPatient">
+        <div class="auth-section-title">เข้าสู่ระบบด้วยข้อมูลผู้ป่วย</div>
+        <div class="auth-field">
+          <label class="auth-label">เลข HN (Hospital Number)</label>
+          <div class="auth-input-wrap">
+            ${icon('card','ic--sm')}
+            <input type="text" id="patientHN" class="auth-input" placeholder="เช่น 100245" inputmode="numeric" autocomplete="off" />
+          </div>
+        </div>
+        <div class="auth-field">
+          <label class="auth-label">เลขบัตรประชาชน 13 หลัก</label>
+          <div class="auth-input-wrap">
+            ${icon('shield','ic--sm')}
+            <input type="text" id="patientID" class="auth-input" placeholder="X-XXXX-XXXXX-XX-X"
+              maxlength="17" inputmode="numeric" autocomplete="off" />
+          </div>
+          <span class="auth-hint">ข้อมูลเข้ารหัสและปลอดภัย</span>
+        </div>
+        <button class="btn btn--brand" id="btnPatientLogin">เข้าสู่ระบบ</button>
+        <div class="auth-divider"><span>หรือ</span></div>
+        <button class="btn btn--ghost" id="btnDemo">ทดลองใช้งาน (Demo)</button>
+        <p class="auth-note">* สำหรับลูกค้าที่เคยใช้บริการ SLC Clinics แล้วเท่านั้น</p>
+      </div>
+
+      <!-- ===== Staff login ===== -->
+      <div id="tabStaff" style="display:none">
+        <div class="auth-section-title">เข้าสู่ระบบสำหรับเจ้าหน้าที่</div>
+        <div class="auth-field">
+          <label class="auth-label">อีเมล</label>
+          <div class="auth-input-wrap">
+            ${icon('phone','ic--sm')}
+            <input type="email" id="staffEmail" class="auth-input" placeholder="name@slc-group.com" autocomplete="email" />
+          </div>
+        </div>
+        <div class="auth-field">
+          <label class="auth-label">รหัสผ่าน</label>
+          <div class="auth-input-wrap">
+            ${icon('shield','ic--sm')}
+            <input type="password" id="staffPass" class="auth-input" placeholder="••••••••" autocomplete="current-password" />
+          </div>
+        </div>
+        <button class="btn btn--brand" id="btnStaffLogin">เข้าสู่ระบบ</button>
+      </div>
+
     </div>
 
-    <!-- Patient login -->
-    <div class="auth-card" id="tabPatient">
-      <p class="auth-title">เข้าสู่ระบบ</p>
-      <p class="auth-desc">กรอกข้อมูลเพื่อดูคอร์สและจองนัดหมาย</p>
-      <div class="auth-field">
-        <label class="auth-label">เลข HN (Hospital Number)</label>
-        <input type="text" id="patientHN" class="auth-input" placeholder="เช่น 12345" inputmode="numeric" />
-      </div>
-      <div class="auth-field">
-        <label class="auth-label">เลขบัตรประชาชน 13 หลัก</label>
-        <input type="text" id="patientID" class="auth-input" placeholder="X-XXXX-XXXXX-XX-X"
-          maxlength="17" inputmode="numeric" />
-      </div>
-      <button class="btn btn--dark" id="btnPatientLogin">เข้าสู่ระบบ</button>
-      <div class="auth-divider"><span>หรือ</span></div>
-      <button class="btn btn--ghost" id="btnDemo">ทดลองใช้งาน (Demo)</button>
-    </div>
-
-    <!-- Staff login -->
-    <div class="auth-card" id="tabStaff" style="display:none">
-      <p class="auth-title">เข้าสู่ระบบพนักงาน</p>
-      <p class="auth-desc">สำหรับเจ้าหน้าที่และแพทย์</p>
-      <div class="auth-field">
-        <label class="auth-label">อีเมล (@slc-group.com)</label>
-        <input type="email" id="staffEmail" class="auth-input" placeholder="name@slc-group.com" autocomplete="email" />
-      </div>
-      <div class="auth-field">
-        <label class="auth-label">รหัสผ่าน</label>
-        <input type="password" id="staffPass" class="auth-input" placeholder="รหัสผ่าน" autocomplete="current-password" />
-      </div>
-      <button class="btn btn--dark" id="btnStaffLogin">เข้าสู่ระบบ</button>
+    <!-- Footer -->
+    <div class="auth-footer">
+      <p>© 2568 SLC Clinics & Hospital · <a href="#" style="color:var(--brand)">นโยบายความเป็นส่วนตัว</a></p>
     </div>
   </div>`;
 
@@ -900,8 +928,8 @@ async function bgSync() {
 }
 
 function boot() {
-  // ซ่อน loading ทันที — ไม่รอ network
-  try { document.getElementById('loading').style.display = 'none'; } catch(_) {}
+  // ซ่อน loading screen ทันที
+  try { document.getElementById('loading').remove(); } catch(_) {}
 
   // โหลดข้อมูล (localStorage หรือ default จาก data.js)
   lsLoad();
