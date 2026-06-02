@@ -454,36 +454,37 @@ body {
    ============================================================ */
 .role-wrap {
   flex: 1; display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 20px; padding: 40px 28px;
+  align-items: center; justify-content: space-evenly;
+  padding: 32px 28px calc(32px + env(safe-area-inset-bottom));
 }
-.role-logo { width: 90px; height: 90px; object-fit: contain;
-  background: var(--bg); border-radius: 20px; padding: 8px; }
-.role-title { font-family: var(--font-dp); font-size: 26px; font-weight: 600; color: var(--ink); }
-.role-sub { font-size: 14px; color: var(--muted); }
-.role-cards { display: flex; flex-direction: column; gap: 12px; width: 100%; margin-top: 8px; }
+.role-logo { width: 100px; height: 100px; object-fit: contain;
+  background: var(--bg); border-radius: 22px; padding: 10px; }
+.role-title { font-family: var(--font-dp); font-size: 28px; font-weight: 600; color: var(--ink); }
+.role-sub { font-size: 15px; color: var(--muted); }
+.role-cards { display: flex; flex-direction: column; gap: 14px; width: 100%; margin-top: 12px; }
 .role-card {
   display: flex; flex-direction: row; align-items: center; gap: 16px;
-  padding: 20px; border: 2px solid var(--line); border-radius: 18px;
+  padding: 22px 20px; border: 1.5px solid var(--line-2); border-radius: 18px;
   background: var(--bg); cursor: pointer; text-align: left;
-  transition: border-color .15s, background .15s;
+  transition: border-color .15s, background .15s; width: 100%;
 }
 .role-card:active { border-color: var(--brand); background: var(--bg-2); }
-.role-card__icon { width: 52px; height: 52px; border-radius: 16px; flex-shrink: 0;
+.role-card__icon { width: 56px; height: 56px; border-radius: 16px; flex: 0 0 56px;
   background: var(--bg-2); display: grid; place-items: center; }
-.role-card__icon svg { width: 24px; height: 24px; stroke: var(--brand); }
-.role-card__text { flex: 1; display: flex; flex-direction: column; gap: 3px; }
-.role-card__label { font-size: 16px; font-weight: 700; color: var(--ink); }
-.role-card__hint { font-size: 13px; color: var(--muted); }
+.role-card__icon svg { width: 26px; height: 26px; stroke: var(--brand); }
+.role-card__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.role-card__label { font-size: 17px; font-weight: 700; color: var(--ink); white-space: nowrap; }
+.role-card__hint { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.role-card__arrow { flex: 0 0 auto; }
 .role-card__arrow svg { width: 18px; height: 18px; stroke: var(--muted); }
 
 /* ============================================================
    CREDENTIALS SCREEN
    ============================================================ */
 .cred-wrap {
-  flex: 1; display: flex; flex-direction: column; gap: 16px;
-  padding: 20px 24px calc(40px + env(safe-area-inset-bottom));
-  overflow-y: auto;
+  flex: 1; display: flex; flex-direction: column; gap: 20px;
+  padding: 20px 28px calc(40px + env(safe-area-inset-bottom));
+  justify-content: center; overflow-y: auto;
 }
 .cred-back {
   display: inline-flex; align-items: center; gap: 4px;
@@ -493,8 +494,8 @@ body {
 .cred-back .ic svg { width: 16px; height: 16px; stroke: var(--muted); }
 .cred-logo { width: 72px; height: 72px; object-fit: contain;
   background: var(--bg); border-radius: 16px; padding: 6px; align-self: center; }
-.cred-title { font-family: var(--font-dp); font-size: 22px; font-weight: 600;
-  color: var(--ink); text-align: center; }
+.cred-title { font-family: var(--font-dp); font-size: 24px; font-weight: 600;
+  color: var(--ink); text-align: center; line-height: 1.3; }
 .cred-field { display: flex; flex-direction: column; gap: 7px; }
 .cred-field label { font-size: 13px; font-weight: 600; color: var(--ink-2); }
 .cred-input-wrap {
