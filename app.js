@@ -751,36 +751,67 @@ function lsLoad() {
     const a = localStorage.getItem('slc_appointments');
     if (c) COURSES.splice(0, COURSES.length, ...JSON.parse(c));
     if (a) APPOINTMENTS.splice(0, APPOINTMENTS.length, ...JSON.parse(a));
+    return !!(c || a);
+  } catch(_) { return false; }
+}
+
+function lsSave() {
+  try {
+    localStorage.setItem('slc_courses', JSON.stringify(COURSES));
+    localStorage.setItem('slc_appointments', JSON.stringify(APPOINTMENTS));
   } catch(_) {}
+}
+
+/* รอให้ Supabase พร้อม (โหลด async ทีหลัง) */
+function waitSupa(maxMs) {
+  return new Promise(resolve => {
+    if (window._supaReady) { resolve(true); return; }
+    const start = Date.now();
+    const t = setInterval(() => {
+      if (window._supaReady) { clearInterval(t); resolve(true); }
+      else if (Date.now() - start > maxMs) { clearInterval(t); resolve(false); }
+    }, 200);
+  });
+}
+
+/* background sync — ไม่ block UI เลย */
+async function bgSync() {
+  const ready = await waitSupa(10000); // รอ Supabase สูงสุด 10 วิ
+  if (!ready) return;
+  try {
+    const has = await supaCheckSession();
+    if (!has) return;
+    await supaLoad();
+    lsSave();
+    render();
+  } catch(e) { console.warn('bgSync:', e.message); }
 }
 
 async function boot() {
   const loading = document.getElementById('loading');
   const hide = () => { if (loading) loading.style.display = 'none'; };
 
-  // Timeout 5 วินาที — ถ้า Supabase ไม่ตอบให้ fallback ทันที
-  const timer = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 5000));
+  // โหลด localStorage ทันที — ไม่ต้องรอ Supabase เลย
+  const hasLocal = lsLoad();
 
-  try {
-    if (!window.supabase) throw new Error('no-cdn');
-
-    await Promise.race([
-      (async () => {
-        const hasSession = await supaCheckSession();
-        hide();
-        if (!hasSession) { renderAuth(); return; }
-        await supaLoad();
-        setTab('home');
-      })(),
-      timer,
-    ]);
-  } catch(e) {
+  if (hasLocal) {
+    // ผู้ใช้เดิม: เปิดแอปทันที แล้วค่อย sync ใน background
     hide();
-    if (e.message === 'timeout') {
-      toast('การเชื่อมต่อช้า — ใช้ข้อมูล offline แทน');
-    }
-    lsLoad();
     setTab('home');
+    bgSync();
+    return;
   }
+
+  // ผู้ใช้ใหม่: รอ Supabase สูงสุด 8 วิ
+  hide(); // ซ่อน loading ก่อน — แสดง home ว่างๆ ดีกว่าค้างหน้าโหลด
+  setTab('home');
+  const ready = await waitSupa(8000);
+  if (!ready) { toast('ไม่พบการเชื่อมต่อ — ใช้ Demo data'); return; }
+  try {
+    await supaInit();
+    await supaLoad();
+    lsSave();
+    render();
+  } catch(e) { console.warn('boot new user:', e.message); }
 }
 boot();
