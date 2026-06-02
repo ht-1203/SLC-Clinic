@@ -739,9 +739,11 @@ function bindView() {
   });
 }
 
-/* ---------- PWA service worker ---------- */
+/* ---------- PWA service worker — unregister เวอร์ชันเก่าออกก่อน ---------- */
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(console.warn);
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(r => r.unregister());
+  });
 }
 
 /* ---------- boot ---------- */
