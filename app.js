@@ -787,31 +787,17 @@ async function bgSync() {
   } catch(e) { console.warn('bgSync:', e.message); }
 }
 
-async function boot() {
-  const loading = document.getElementById('loading');
-  const hide = () => { if (loading) loading.style.display = 'none'; };
+function boot() {
+  // ซ่อน loading ทันที — ไม่รอ network
+  try { document.getElementById('loading').style.display = 'none'; } catch(_) {}
 
-  // โหลด localStorage ทันที — ไม่ต้องรอ Supabase เลย
-  const hasLocal = lsLoad();
+  // โหลดข้อมูล (localStorage หรือ default จาก data.js)
+  lsLoad();
 
-  if (hasLocal) {
-    // ผู้ใช้เดิม: เปิดแอปทันที แล้วค่อย sync ใน background
-    hide();
-    setTab('home');
-    bgSync();
-    return;
-  }
+  // เปิดแอป
+  try { setTab('home'); } catch(e) { console.error('render error:', e); }
 
-  // ผู้ใช้ใหม่: รอ Supabase สูงสุด 8 วิ
-  hide(); // ซ่อน loading ก่อน — แสดง home ว่างๆ ดีกว่าค้างหน้าโหลด
-  setTab('home');
-  const ready = await waitSupa(8000);
-  if (!ready) { toast('ไม่พบการเชื่อมต่อ — ใช้ Demo data'); return; }
-  try {
-    await supaInit();
-    await supaLoad();
-    lsSave();
-    render();
-  } catch(e) { console.warn('boot new user:', e.message); }
+  // Supabase sync ใน background — ไม่กระทบการแสดงผล
+  bgSync();
 }
 boot();
