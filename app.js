@@ -1,10 +1,108 @@
 /* ============================================================
-   Méthode Clinic — App controller (minimal theme)
+   SLC Clinic — App controller
    ============================================================ */
 
-const $view = document.getElementById('view');
+const $view   = document.getElementById('view');
 const $tabbar = document.getElementById('tabbar');
-const $toast = document.getElementById('toast');
+const $toast  = document.getElementById('toast');
+
+/* ============================================================
+   SPLASH SCREEN
+   ============================================================ */
+function showSplash(onDone) {
+  const el = document.getElementById('splash');
+  if (!el) { onDone(); return; }
+  el.style.display = 'flex';
+  // Animate in
+  setTimeout(() => el.classList.add('splash--ready'), 50);
+  // Animate out after 2s
+  setTimeout(() => {
+    el.classList.add('splash--exit');
+    setTimeout(() => { el.style.display = 'none'; onDone(); }, 500);
+  }, 2000);
+}
+
+/* ============================================================
+   PIN SCREEN
+   ============================================================ */
+const PIN_KEY = 'slc_pin';
+
+function showPIN(onSuccess) {
+  const stored = localStorage.getItem(PIN_KEY);
+  const isSetup = !stored;
+  const appEl = document.getElementById('app');
+
+  const screen = document.createElement('div');
+  screen.className = 'pin-screen';
+  screen.innerHTML = `
+    <div class="pin-top">
+      <img src="slc-logo.png" class="pin-logo" alt="SLC" />
+      <p class="pin-hint" id="pinHint">${isSetup ? 'ตั้งรหัส PIN 4 หลัก' : 'กรอกรหัส PIN'}</p>
+      <div class="pin-dots" id="pinDots">
+        <div class="pin-dot"></div><div class="pin-dot"></div>
+        <div class="pin-dot"></div><div class="pin-dot"></div>
+      </div>
+    </div>
+    <div class="pin-pad">
+      ${[1,2,3,4,5,6,7,8,9,'',0,'⌫'].map(k =>
+        `<button class="pin-key${k==='' ? ' pin-key--empty' : ''}" data-k="${k}">${k}</button>`
+      ).join('')}
+    </div>`;
+  appEl.appendChild(screen);
+
+  let entry = '', confirmEntry = '', step = isSetup ? 'set' : 'enter';
+
+  function updateDots(n) {
+    screen.querySelectorAll('.pin-dot').forEach((d, i) => {
+      d.classList.toggle('pin-dot--filled', i < n);
+    });
+  }
+
+  function shakeAndClear(msg) {
+    const dots = screen.querySelector('.pin-dots');
+    dots.classList.add('pin-shake');
+    setTimeout(() => dots.classList.remove('pin-shake'), 500);
+    screen.querySelector('#pinHint').textContent = msg;
+    entry = ''; updateDots(0);
+  }
+
+  function press(k) {
+    if (k === '⌫') { entry = entry.slice(0,-1); updateDots(entry.length); return; }
+    if (entry.length >= 4) return;
+    entry += k; updateDots(entry.length);
+
+    if (entry.length === 4) {
+      setTimeout(() => {
+        if (step === 'enter') {
+          if (entry === stored) {
+            screen.classList.add('pin-exit');
+            setTimeout(() => { screen.remove(); onSuccess(); }, 400);
+          } else {
+            shakeAndClear('รหัสไม่ถูกต้อง ลองใหม่');
+          }
+        } else if (step === 'set') {
+          confirmEntry = entry; entry = '';
+          step = 'confirm';
+          screen.querySelector('#pinHint').textContent = 'ยืนยันรหัส PIN อีกครั้ง';
+          updateDots(0);
+        } else {
+          if (entry === confirmEntry) {
+            localStorage.setItem(PIN_KEY, entry);
+            screen.classList.add('pin-exit');
+            setTimeout(() => { screen.remove(); onSuccess(); }, 400);
+          } else {
+            confirmEntry = ''; step = 'set';
+            shakeAndClear('PIN ไม่ตรงกัน ตั้งใหม่อีกครั้ง');
+          }
+        }
+      }, 120);
+    }
+  }
+
+  screen.querySelectorAll('[data-k]').forEach(btn => {
+    btn.onclick = () => { if (btn.dataset.k !== '') press(btn.dataset.k); };
+  });
+}
 
 /* ---------- helpers ---------- */
 const fmtBaht = n => '฿' + n.toLocaleString('th-TH');
@@ -924,8 +1022,11 @@ async function bgSync() {
 }
 
 function boot() {
-  // ซ่อน loading screen ทันที
   try { document.getElementById('loading').remove(); } catch(_) {}
+  showSplash(() => showPIN(startApp));
+}
+
+function startApp() {
 
   // โหลดข้อมูล (localStorage หรือ default จาก data.js)
   lsLoad();
