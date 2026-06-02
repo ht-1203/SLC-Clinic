@@ -19,7 +19,9 @@
   <!-- ====== DESKTOP NOTICE (hidden on mobile) ====== -->
   <div id="desktop-notice" class="desktop-notice">
     <div class="dn-left">
-      <img src="slc-logo.png" class="dn-logo-img" alt="SLC Clinics & Hospital" />
+      <div class="dn-logo-wrap">
+        <img src="slc-logo.png" class="dn-logo-img" alt="SLC Clinics & Hospital" />
+      </div>
       <h2 class="dn-tagline">ระบบจองหัตถการ<br>&amp; ติดตามคอร์สความงาม</h2>
       <ul class="dn-features">
         <li>ดูคอร์สที่ซื้อไว้และสิทธิ์คงเหลือ</li>
@@ -28,8 +30,9 @@
       </ul>
     </div>
     <div class="dn-right">
-      <div class="dn-phone-frame">
-        <div id="dn-qr" class="dn-qr"></div>
+      <div class="dn-qr-wrap">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https%3A%2F%2Fht-1203.github.io%2FSLC-Clinic%2F&color=0D2030&bgcolor=ffffff&margin=2"
+          width="200" height="200" alt="QR Code" style="border-radius:12px;display:block" />
       </div>
       <p class="dn-scan-label">สแกนเพื่อเปิดบนมือถือ</p>
       <p class="dn-url">ht-1203.github.io/SLC-Clinic</p>
@@ -77,27 +80,7 @@
       app.style.display = '';
     };
 
-    // Load QRCode for desktop notice
-    (function(){
-      var s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
-      s.onload = function() {
-        var el = document.getElementById('dn-qr');
-        if (!el || !window.QRCode) return;
-        QRCode.toDataURL('https://ht-1203.github.io/SLC-Clinic/', {
-          width: 200, margin: 2,
-          color: { dark: '#0D2030', light: '#ffffff' }
-        }, function(err, url) {
-          if (!err) {
-            var img = document.createElement('img');
-            img.src = url; img.width = 200; img.height = 200;
-            img.style.display = 'block'; img.style.borderRadius = '8px';
-            el.appendChild(img);
-          }
-        });
-      };
-      document.head.appendChild(s);
-    })();
+    // QR code now uses static API URL — no JS needed
 
     // Load Supabase async
     (function(){
