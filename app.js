@@ -170,11 +170,7 @@ function renderAuth() {
     <div class="auth-hero">
       <div class="auth-hero__bg"></div>
       <div class="auth-hero__content">
-        <svg viewBox="0 0 20 13" width="40" height="26" style="fill:#fff;opacity:.9">
-          <path d="M10 9C8 4 2 2 1 6C0 10 5 11 10 9Z"/>
-          <path d="M10 9C12 4 18 2 19 6C20 10 15 11 10 9Z"/>
-          <ellipse cx="10" cy="10" rx="1.2" ry="1.8"/>
-        </svg>
+        <img src="icon.svg" width="64" height="64" alt="SLC" style="border-radius:14px;background:#fff;padding:4px" />
         <h1 class="auth-hero__brand">SLC Clinics &amp; Hospital</h1>
         <p class="auth-hero__tag">ระบบจองหัตถการ & ติดตามคอร์สความงาม</p>
       </div>

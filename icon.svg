@@ -1,6 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
-  <rect width="192" height="192" rx="40" fill="#0D2030"/>
-  <path d="M96 110 C80 60 24 40 16 80 C8 112 52 120 96 110Z" fill="#2BBDCE"/>
-  <path d="M96 110 C112 60 168 40 176 80 C184 112 140 120 96 110Z" fill="#2BBDCE"/>
-  <ellipse cx="96" cy="122" rx="10" ry="14" fill="#2BBDCE"/>
+  <!-- Background -->
+  <rect width="192" height="192" fill="#ffffff"/>
+
+  <!-- Butterfly wings (upper-right area) -->
+  <!-- Right upper wing (large) -->
+  <path d="M120 52 C128 28 162 18 158 42 C155 56 138 60 120 56" fill="#2BBDCE"/>
+  <!-- Right lower wing -->
+  <path d="M120 60 C130 72 155 76 150 60 C147 52 134 56 120 60" fill="#2BBDCE" opacity=".85"/>
+  <!-- Left upper wing (small) -->
+  <path d="M116 52 C110 32 92 34 96 48 C99 58 110 58 116 56" fill="#2BBDCE"/>
+  <!-- Left lower wing -->
+  <path d="M116 60 C110 70 94 68 98 56 C100 50 110 56 116 60" fill="#2BBDCE" opacity=".85"/>
+  <!-- Body -->
+  <ellipse cx="118" cy="58" rx="2.5" ry="7" fill="#1A8FA0" transform="rotate(-15 118 58)"/>
+
+  <!-- SLC text -->
+  <text x="16" y="120" font-family="Georgia,serif" font-size="68" font-weight="bold" fill="#2BBDCE" letter-spacing="-1">SLC</text>
+
+  <!-- Registered mark -->
+  <circle cx="126" cy="72" r="5" fill="none" stroke="#2BBDCE" stroke-width="1.2"/>
+  <text x="126" y="76" font-family="serif" font-size="6" fill="#2BBDCE" text-anchor="middle">R</text>
+
+  <!-- Subtitle -->
+  <text x="96" y="150" font-family="Arial,sans-serif" font-size="15" font-weight="500"
+    fill="#2BBDCE" text-anchor="middle" letter-spacing="0.5">Clinics &amp; Hospital</text>
 </svg>
