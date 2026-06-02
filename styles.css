@@ -55,35 +55,56 @@ body {
 .logo-img--hero { filter: brightness(0) invert(1); }
 
 /* ============================================================
-   APP SHELL
+   APP SHELL — pattern เดียวกับ website จริง
+   Background เต็มจอ, content มี max-width + centered
    ============================================================ */
 .app-shell {
+  width: 100%;
   min-height: 100vh; min-height: 100dvh;
   background: var(--bg);
   position: relative; display: flex; flex-direction: column;
 }
 
-/* ---- Mobile: full width ---- */
-@media (max-width: 767px) {
-  .app-shell { width: 100%; }
+/* Overlay screens: เต็มจอเสมอ ไม่มี max-width */
+.role-screen, .cred-screen, .pin-screen {
+  position: fixed; inset: 0; z-index: 8000;
+  background: var(--bg); animation: rise .28s ease;
+  display: flex; flex-direction: column;
 }
 
-/* ---- Desktop: full width, content max-width centered ---- */
+/* Content ข้างใน: centered ด้วย max-width เหมือน Lhao Lhao */
+.role-wrap {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: space-evenly;
+  padding: 40px 24px calc(40px + env(safe-area-inset-bottom));
+  width: 100%; max-width: 560px; margin: 0 auto;
+}
+
+.cred-wrap {
+  flex: 1; display: flex; flex-direction: column; gap: 20px;
+  justify-content: center; overflow-y: auto;
+  padding: 24px 24px calc(40px + env(safe-area-inset-bottom));
+  width: 100%; max-width: 520px; margin: 0 auto;
+}
+
+/* PIN: content centered */
+.pin-top {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 20px;
+  padding: 40px 24px 0;
+  width: 100%; max-width: 400px; margin: 0 auto;
+}
+
+/* Desktop: tabbar fixed bottom, full width */
 @media (min-width: 768px) {
-  body { background: var(--bg); }
-  .app-shell { width: 100%; }
+  /* View content centered on desktop */
+  .view { padding-bottom: calc(100px + env(safe-area-inset-bottom)); }
 
-  /* Center content on desktop */
-  .view { max-width: 680px; margin: 0 auto; width: 100%; }
-  .tabbar { max-width: 680px; left: 50%; transform: translateX(-50%); }
-
-  /* Overlay screens fill screen, content centered */
-  .role-screen, .cred-screen, .pin-screen {
-    max-width: 100%; left: 0; transform: none;
+  /* Tabbar stays centered */
+  .tabbar {
+    left: 50%; transform: translateX(-50%);
+    max-width: 600px;
   }
-  .role-wrap { max-width: 520px; margin: 0 auto; width: 100%; }
-  .cred-wrap { max-width: 480px; margin: 0 auto; width: 100%; }
-  .pin-top, .pin-pad { max-width: 400px; margin: 0 auto; width: 100%; }
 }
 
 /* ============================================================
