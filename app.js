@@ -25,83 +25,198 @@ function showSplash(onDone) {
 /* ============================================================
    PIN SCREEN
    ============================================================ */
-const PIN_KEY = 'slc_pin';
+const PIN_KEY  = 'slc_pin';
+const ROLE_KEY = 'slc_role'; // 'patient' | 'staff'
 
+/* ---- helper: mount/remove full-screen layer ---- */
+function mountLayer(html, cls) {
+  const el = document.createElement('div');
+  el.className = cls; el.innerHTML = html;
+  document.getElementById('app').appendChild(el);
+  return el;
+}
+function removeLayer(el, cb) {
+  el.classList.add('layer-exit');
+  setTimeout(() => { el.remove(); cb && cb(); }, 380);
+}
+
+/* ============================================================
+   1. ROLE SELECTION
+   ============================================================ */
+function showRoleSelect() {
+  const el = mountLayer(`
+    <div class="role-wrap">
+      <img src="slc-logo.png" class="role-logo" alt="SLC" />
+      <h2 class="role-title">ยินดีต้อนรับ</h2>
+      <p class="role-sub">กรุณาเลือกประเภทผู้ใช้งาน</p>
+      <div class="role-cards">
+        <button class="role-card" data-role="patient">
+          <span class="role-card__icon">${icon('user')}</span>
+          <span class="role-card__label">ผู้รับบริการ</span>
+          <span class="role-card__hint">ลูกค้าคลินิก</span>
+        </button>
+        <button class="role-card" data-role="staff">
+          <span class="role-card__icon">${icon('shield')}</span>
+          <span class="role-card__label">พนักงาน</span>
+          <span class="role-card__hint">เจ้าหน้าที่ / แพทย์</span>
+        </button>
+      </div>
+    </div>`, 'role-screen');
+
+  el.querySelectorAll('[data-role]').forEach(btn => {
+    btn.onclick = () => {
+      const role = btn.dataset.role;
+      localStorage.setItem(ROLE_KEY, role);
+      removeLayer(el, () => showCredentials(role));
+    };
+  });
+}
+
+/* ============================================================
+   2. CREDENTIALS
+   ============================================================ */
+function showCredentials(role) {
+  const isPatient = role === 'patient';
+  const el = mountLayer(`
+    <div class="cred-wrap">
+      <button class="cred-back" id="credBack">${icon('chevleft')} ย้อนกลับ</button>
+      <img src="slc-logo.png" class="cred-logo" alt="SLC" />
+      <h2 class="cred-title">${isPatient ? 'เข้าสู่ระบบผู้รับบริการ' : 'เข้าสู่ระบบพนักงาน'}</h2>
+
+      ${isPatient ? `
+        <div class="cred-field">
+          <label>เลข HN (Hospital Number)</label>
+          <div class="cred-input-wrap">
+            ${icon('card','ic--sm')}
+            <input id="credA" type="text" inputmode="numeric" placeholder="เช่น 100245" autocomplete="off" />
+          </div>
+        </div>
+        <div class="cred-field">
+          <label>เลขบัตรประชาชน 13 หลัก</label>
+          <div class="cred-input-wrap">
+            ${icon('shield','ic--sm')}
+            <input id="credB" type="text" inputmode="numeric" placeholder="X-XXXX-XXXXX-XX-X" maxlength="17" autocomplete="off" />
+          </div>
+        </div>` : `
+        <div class="cred-field">
+          <label>รหัสพนักงาน</label>
+          <div class="cred-input-wrap">
+            ${icon('card','ic--sm')}
+            <input id="credA" type="text" placeholder="เช่น EMP001" autocomplete="username" />
+          </div>
+        </div>
+        <div class="cred-field">
+          <label>รหัสผ่าน</label>
+          <div class="cred-input-wrap">
+            ${icon('shield','ic--sm')}
+            <input id="credB" type="password" placeholder="••••••••" autocomplete="current-password" />
+          </div>
+        </div>`}
+
+      <button class="btn btn--brand" id="credSubmit">ถัดไป</button>
+      <p class="cred-note" id="credErr"></p>
+    </div>`, 'cred-screen');
+
+  // Format Thai ID
+  if (isPatient) {
+    el.querySelector('#credB').oninput = function() {
+      const d = this.value.replace(/\D/g,'').slice(0,13);
+      const p = [d.slice(0,1),d.slice(1,5),d.slice(5,10),d.slice(10,12),d.slice(12,13)];
+      this.value = p.filter(Boolean).join('-');
+    };
+  }
+
+  el.querySelector('#credBack').onclick = () => removeLayer(el, showRoleSelect);
+
+  el.querySelector('#credSubmit').onclick = async () => {
+    const a = el.querySelector('#credA').value.trim();
+    const b = el.querySelector('#credB').value.trim();
+    const err = el.querySelector('#credErr');
+    const btn = el.querySelector('#credSubmit');
+
+    if (!a || !b) { err.textContent = 'กรุณากรอกข้อมูลให้ครบ'; return; }
+    if (isPatient && b.replace(/\D/g,'').length !== 13) {
+      err.textContent = 'เลขบัตรประชาชนต้องมี 13 หลัก'; return;
+    }
+
+    btn.disabled = true; btn.textContent = 'กำลังตรวจสอบ...'; err.textContent = '';
+    try {
+      if (isPatient) {
+        await signInPatient(a, b);
+        await supaLoad();
+      } else {
+        await signInStaff(a + '@slc-clinic.internal', b);
+        await supaLoad();
+      }
+      removeLayer(el, () => showPIN(isPatient ? startApp : () => go('profile')));
+    } catch(e) {
+      err.textContent = e.message || 'ข้อมูลไม่ถูกต้อง';
+      btn.disabled = false; btn.textContent = 'ถัดไป';
+    }
+  };
+}
+
+/* ============================================================
+   3. PIN
+   ============================================================ */
 function showPIN(onSuccess) {
   const stored = localStorage.getItem(PIN_KEY);
   const isSetup = !stored;
-  const appEl = document.getElementById('app');
-
-  const screen = document.createElement('div');
-  screen.className = 'pin-screen';
-  screen.innerHTML = `
+  const el = mountLayer(`
     <div class="pin-top">
       <img src="slc-logo.png" class="pin-logo" alt="SLC" />
       <p class="pin-hint" id="pinHint">${isSetup ? 'ตั้งรหัส PIN 4 หลัก' : 'กรอกรหัส PIN'}</p>
-      <div class="pin-dots" id="pinDots">
+      <div class="pin-dots">
         <div class="pin-dot"></div><div class="pin-dot"></div>
         <div class="pin-dot"></div><div class="pin-dot"></div>
       </div>
     </div>
     <div class="pin-pad">
       ${[1,2,3,4,5,6,7,8,9,'',0,'⌫'].map(k =>
-        `<button class="pin-key${k==='' ? ' pin-key--empty' : ''}" data-k="${k}">${k}</button>`
+        `<button class="pin-key${k===''?' pin-key--empty':''}" data-k="${k}">${k}</button>`
       ).join('')}
-    </div>`;
-  appEl.appendChild(screen);
+    </div>`, 'pin-screen');
 
-  let entry = '', confirmEntry = '', step = isSetup ? 'set' : 'enter';
+  let entry = '', confirm2 = '', step = isSetup ? 'set' : 'enter';
 
-  function updateDots(n) {
-    screen.querySelectorAll('.pin-dot').forEach((d, i) => {
-      d.classList.toggle('pin-dot--filled', i < n);
-    });
-  }
+  const dots = () => el.querySelectorAll('.pin-dot');
+  const hint = () => el.querySelector('#pinHint');
+  const fill = n => dots().forEach((d,i) => d.classList.toggle('pin-dot--filled', i < n));
 
-  function shakeAndClear(msg) {
-    const dots = screen.querySelector('.pin-dots');
-    dots.classList.add('pin-shake');
-    setTimeout(() => dots.classList.remove('pin-shake'), 500);
-    screen.querySelector('#pinHint').textContent = msg;
-    entry = ''; updateDots(0);
+  function shake(msg) {
+    el.querySelector('.pin-dots').classList.add('pin-shake');
+    setTimeout(() => el.querySelector('.pin-dots').classList.remove('pin-shake'), 500);
+    hint().textContent = msg; entry = ''; fill(0);
   }
 
   function press(k) {
-    if (k === '⌫') { entry = entry.slice(0,-1); updateDots(entry.length); return; }
+    if (k === '⌫') { entry = entry.slice(0,-1); fill(entry.length); return; }
     if (entry.length >= 4) return;
-    entry += k; updateDots(entry.length);
-
-    if (entry.length === 4) {
-      setTimeout(() => {
-        if (step === 'enter') {
-          if (entry === stored) {
-            screen.classList.add('pin-exit');
-            setTimeout(() => { screen.remove(); onSuccess(); }, 400);
-          } else {
-            shakeAndClear('รหัสไม่ถูกต้อง ลองใหม่');
-          }
-        } else if (step === 'set') {
-          confirmEntry = entry; entry = '';
-          step = 'confirm';
-          screen.querySelector('#pinHint').textContent = 'ยืนยันรหัส PIN อีกครั้ง';
-          updateDots(0);
-        } else {
-          if (entry === confirmEntry) {
-            localStorage.setItem(PIN_KEY, entry);
-            screen.classList.add('pin-exit');
-            setTimeout(() => { screen.remove(); onSuccess(); }, 400);
-          } else {
-            confirmEntry = ''; step = 'set';
-            shakeAndClear('PIN ไม่ตรงกัน ตั้งใหม่อีกครั้ง');
-          }
-        }
-      }, 120);
-    }
+    entry += k; fill(entry.length);
+    if (entry.length < 4) return;
+    setTimeout(() => {
+      if (step === 'enter') {
+        if (entry === stored) { removeLayer(el, onSuccess); }
+        else shake('รหัสไม่ถูกต้อง ลองใหม่');
+      } else if (step === 'set') {
+        confirm2 = entry; entry = ''; step = 'confirm';
+        hint().textContent = 'ยืนยัน PIN อีกครั้ง'; fill(0);
+      } else {
+        if (entry === confirm2) { localStorage.setItem(PIN_KEY, entry); removeLayer(el, onSuccess); }
+        else { confirm2 = ''; step = 'set'; shake('PIN ไม่ตรงกัน ตั้งใหม่'); }
+      }
+    }, 120);
   }
 
-  screen.querySelectorAll('[data-k]').forEach(btn => {
-    btn.onclick = () => { if (btn.dataset.k !== '') press(btn.dataset.k); };
-  });
+  el.querySelectorAll('[data-k]').forEach(b => { b.onclick = () => { if (b.dataset.k !== '') press(b.dataset.k); }; });
+}
+
+/* ---- logout helper ---- */
+function doLogout() {
+  localStorage.removeItem(PIN_KEY);
+  localStorage.removeItem(ROLE_KEY);
+  supaSignOut().catch(()=>{});
+  showRoleSelect();
 }
 
 /* ---------- helpers ---------- */
@@ -964,10 +1079,7 @@ function bindView() {
       go('bookDone');
     }
     else if (a === 'renew') toast('ติดต่อเจ้าหน้าที่เพื่อต่อคอร์ส');
-    else if (a === 'logout') {
-      await supaSignOut().catch(console.warn);
-      db.reset();
-    }
+    else if (a === 'logout') { doLogout(); }
   });
 }
 
@@ -1023,7 +1135,17 @@ async function bgSync() {
 
 function boot() {
   try { document.getElementById('loading').remove(); } catch(_) {}
-  showSplash(() => showPIN(startApp));
+  const hasPin  = !!localStorage.getItem(PIN_KEY);
+  const hasRole = !!localStorage.getItem(ROLE_KEY);
+  showSplash(() => {
+    if (hasPin && hasRole) {
+      // Returning user → PIN only
+      showPIN(startApp);
+    } else {
+      // New / logged-out → role selection → credentials → PIN
+      showRoleSelect();
+    }
+  });
 }
 
 function startApp() {

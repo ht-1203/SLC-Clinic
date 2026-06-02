@@ -440,17 +440,78 @@ body {
   100% { transform: scale(1);  opacity: 0; }
 }
 
+/* shared layer animation */
+.role-screen, .cred-screen, .pin-screen {
+  position: absolute; inset: 0; z-index: 8000;
+  background: var(--bg); animation: rise .28s ease;
+  display: flex; flex-direction: column;
+}
+.layer-exit { animation: pin-fade-out .38s ease forwards !important; }
+
+/* ============================================================
+   ROLE SELECTION SCREEN
+   ============================================================ */
+.role-wrap {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 20px; padding: 40px 28px;
+}
+.role-logo { width: 90px; height: 90px; object-fit: contain;
+  background: var(--bg); border-radius: 20px; padding: 8px; }
+.role-title { font-family: var(--font-dp); font-size: 26px; font-weight: 600; color: var(--ink); }
+.role-sub { font-size: 14px; color: var(--muted); }
+.role-cards { display: flex; gap: 14px; width: 100%; margin-top: 8px; }
+.role-card {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 28px 16px; border: 2px solid var(--line); border-radius: 20px;
+  background: var(--bg); cursor: pointer; transition: .15s;
+}
+.role-card:active, .role-card:hover { border-color: var(--brand); background: var(--bg-2); }
+.role-card__icon { width: 52px; height: 52px; border-radius: 16px;
+  background: var(--bg-2); display: grid; place-items: center; }
+.role-card__icon svg { width: 24px; height: 24px; stroke: var(--brand); }
+.role-card__label { font-size: 15px; font-weight: 700; color: var(--ink); }
+.role-card__hint { font-size: 12px; color: var(--muted); }
+
+/* ============================================================
+   CREDENTIALS SCREEN
+   ============================================================ */
+.cred-wrap {
+  flex: 1; display: flex; flex-direction: column; gap: 16px;
+  padding: 20px 24px calc(40px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+}
+.cred-back {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: none; border: 0; color: var(--muted); font-size: 14px;
+  cursor: pointer; padding: 4px 0; align-self: flex-start;
+}
+.cred-back .ic svg { width: 16px; height: 16px; stroke: var(--muted); }
+.cred-logo { width: 72px; height: 72px; object-fit: contain;
+  background: var(--bg); border-radius: 16px; padding: 6px; align-self: center; }
+.cred-title { font-family: var(--font-dp); font-size: 22px; font-weight: 600;
+  color: var(--ink); text-align: center; }
+.cred-field { display: flex; flex-direction: column; gap: 7px; }
+.cred-field label { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.cred-input-wrap {
+  display: flex; align-items: center; gap: 12px; padding: 0 16px;
+  border: 1.5px solid var(--line-2); border-radius: 14px; background: var(--bg);
+  transition: border-color .15s;
+}
+.cred-input-wrap:focus-within { border-color: var(--brand); }
+.cred-input-wrap .ic { color: var(--muted); flex-shrink: 0; }
+.cred-input-wrap input { flex: 1; padding: 15px 0; border: 0; outline: none;
+  background: none; font-family: var(--font-th); font-size: 15px; color: var(--ink); }
+.cred-input-wrap input::placeholder { color: var(--muted); }
+.cred-note { font-size: 13px; color: var(--rose); text-align: center; min-height: 18px; }
+
 /* ============================================================
    PIN SCREEN
    ============================================================ */
 .pin-screen {
-  position: absolute; inset: 0; z-index: 8000;
-  background: var(--bg);
-  display: flex; flex-direction: column; align-items: center;
+  align-items: center;
   justify-content: space-between; padding: 0 0 env(safe-area-inset-bottom);
-  animation: rise .3s ease;
 }
-.pin-screen.pin-exit { animation: pin-fade-out .4s ease forwards; }
 @keyframes pin-fade-out {
   to { opacity: 0; transform: scale(.96); }
 }
