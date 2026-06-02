@@ -24,9 +24,10 @@ function fmtApptDate(iso) { const { m, d } = parseDate(iso); return { d: String(
 const THAI_DOW_FULL = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
 function fmtFull(iso) { const { y, m, d, dow } = parseDate(iso); return `${THAI_DOW_FULL[dow]} ${d} ${THAI_MONTHS[m - 1]} ${y + 543}`; }
 
+let _toastT;
 function toast(msg) {
   $toast.textContent = msg; $toast.classList.add('is-show');
-  clearTimeout(toast._t); toast._t = setTimeout(() => $toast.classList.remove('is-show'), 2200);
+  clearTimeout(_toastT); _toastT = setTimeout(() => $toast.classList.remove('is-show'), 2200);
 }
 
 /* ---------- persistence (Supabase + localStorage fallback) ---------- */
@@ -574,6 +575,7 @@ function bookOpt(t, b) {
 
 function apptCard(a) {
   const c = courseById(a.courseId);
+  if (!c) return ''; // Bug #7: guard deleted course
   const fd = fmtApptDate(a.date);
   const tag = a.status === 'confirmed'
     ? `<span class="tag tag--ok">${icon('check','ic--sm')} ยืนยันแล้ว</span>`
@@ -601,7 +603,8 @@ function apptCard(a) {
 const TODAY = { y: 2026, m: 5, d: 30 };
 function nextDates(n) {
   const out = []; let { y, m, d } = TODAY;
-  const dim = mm => [31,28,31,30,31,30,31,31,30,31,30,31][mm-1] + (mm===2 && (y%4===0)?1:0);
+  const isLeap = y%400===0 || (y%4===0 && y%100!==0);
+  const dim = mm => [31,28,31,30,31,30,31,31,30,31,30,31][mm-1] + (mm===2 && isLeap ? 1 : 0);
   for (let i = 0; i < n; i++) {
     d++; if (d > dim(m)) { d = 1; m++; if (m > 12) { m = 1; y++; } }
     const dow = zellerDow(y, m, d);
@@ -622,7 +625,7 @@ function bindView() {
 
   q('[data-book-course]').forEach(el => el.onclick = () => {
     State.booking = { treatment: el.dataset.bookCourse, date: null, time: null };
-    State.tab = 'home'; go('bookDate');
+    go('bookDate');
   });
 
   q('[data-opt]').forEach(el => el.onclick = () => { State.booking.treatment = el.dataset.opt; State.booking.date = null; State.booking.time = null; render(); });
@@ -683,6 +686,7 @@ function bindView() {
     const appt = APPOINTMENTS[idx];
     const c = courseById(appt.courseId);
     if (c && c.used > 0) c.used -= 1;
+    if (c) { const t = TREATMENTS.find(x => x.id === c.id); if (t) t.owned = remaining(c) > 0; } // Bug #3 fix
     APPOINTMENTS.splice(idx, 1);
     db.deleteAppt(appt.id);
     if (c) db.saveCourse(c);
@@ -717,7 +721,7 @@ function bindView() {
       if (c) c.used += 1;
       // Sync TREATMENTS after deduct
       if (t) t.owned = c ? remaining(c) > 0 : false;
-      const rs = t ? defaultRoomStaff(t.cat) : defaultRoomStaff('facial');
+      const rs = t?.cat ? defaultRoomStaff(t.cat) : defaultRoomStaff('facial');
       const newAppt = {
         id: 'AP-' + Date.now(),
         courseId: State.booking.treatment,
