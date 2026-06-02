@@ -512,9 +512,9 @@ body {
    ROLE SELECTION SCREEN
    ============================================================ */
 .role-logo {
-  width: clamp(220px, 62vw, 300px); height: clamp(100px, 28vw, 136px);
+  width: 100%; height: clamp(110px, 30vw, 150px);
   object-fit: contain; display: block;
-  border-radius: clamp(20px, 5.6vw, 28px); padding: clamp(16px, 4.6vw, 24px);
+  border-radius: 18px; padding: clamp(18px, 5.1vw, 28px);
   background: var(--bg-2);
   box-shadow: var(--shadow-md);
 }
