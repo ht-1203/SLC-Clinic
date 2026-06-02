@@ -766,7 +766,7 @@ const VIEWS = {
 
   /* ---------- BOOKING step 1 ---------- */
   book() {
-    State.booking = { treatment: null, date: null, time: null };
+    if (!State.booking) State.booking = { treatment: null, date: null, time: null };
     const b = State.booking;
     return `
     <div class="pagehead">
@@ -917,7 +917,6 @@ const VIEWS = {
       </div></div>
       <div class="card card--pad0">
         ${[
-          { i: 'package', t: 'คอร์สของฉัน', act: 'courses' },
           { i: 'history', t: 'ประวัติการใช้บริการ', act: 'history' },
           { i: 'card', t: 'ใบเสร็จและการชำระเงิน', act: 'soon' },
           { i: 'phone', t: 'ติดต่อคลินิก', act: 'soon' },
@@ -1009,7 +1008,10 @@ function nextDates(n) {
 function bindView() {
   const q = sel => $view.querySelectorAll(sel);
 
-  q('[data-tab2]').forEach(el => el.onclick = () => setTab(el.dataset.tab2));
+  q('[data-tab2]').forEach(el => el.onclick = () => {
+    if (el.dataset.tab2 === 'book') State.booking = null;
+    setTab(el.dataset.tab2);
+  });
   q('[data-back]').forEach(el => el.onclick = () => go(el.dataset.back));
   q('[data-go]').forEach(el => el.onclick = () => go(el.dataset.go));
   q('[data-course]').forEach(el => el.onclick = () => go('courseDetail', { id: el.dataset.course }));
