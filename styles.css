@@ -65,9 +65,9 @@ body {
   border-right: 1px solid rgba(255,255,255,.1);
 }
 .dn-logo-img {
-  width: 180px; height: auto; object-fit: contain;
-  mix-blend-mode: multiply;
-  background: #fff; border-radius: 16px; padding: 16px;
+  width: 200px; height: auto; object-fit: contain;
+  background: #fff; border-radius: 20px; padding: 20px 24px;
+  box-shadow: 0 4px 24px rgba(0,0,0,.3);
 }
 .dn-tagline {
   font-family: var(--font-dp); font-size: 26px; font-weight: 600;

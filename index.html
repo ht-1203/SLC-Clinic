@@ -83,9 +83,18 @@
       s.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
       s.onload = function() {
         var el = document.getElementById('dn-qr');
-        if (el && window.QRCode) {
-          QRCode.toCanvas(el, 'https://ht-1203.github.io/SLC-Clinic/', { width: 160, margin: 2 });
-        }
+        if (!el || !window.QRCode) return;
+        QRCode.toDataURL('https://ht-1203.github.io/SLC-Clinic/', {
+          width: 200, margin: 2,
+          color: { dark: '#0D2030', light: '#ffffff' }
+        }, function(err, url) {
+          if (!err) {
+            var img = document.createElement('img');
+            img.src = url; img.width = 200; img.height = 200;
+            img.style.display = 'block'; img.style.borderRadius = '8px';
+            el.appendChild(img);
+          }
+        });
       };
       document.head.appendChild(s);
     })();
