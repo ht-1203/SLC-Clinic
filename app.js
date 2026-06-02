@@ -705,7 +705,7 @@ function bindView() {
     else toast('ฟีเจอร์นี้อยู่ระหว่างพัฒนา');
   });
 
-  q('[data-act]').forEach(el => el.onclick = () => {
+  q('[data-act]').forEach(el => el.onclick = async () => {
     const a = el.dataset.act;
     if (a === 'confirm-book') {
       if (_saving) return; // prevent double-submit
