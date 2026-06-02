@@ -50,15 +50,10 @@ function removeLayer(el, cb) {
 function showRoleSelect() {
   const el = mountLayer(`
     <div class="role-wrap">
-      <div class="role-hero">
-        <div class="role-hero__glow"></div>
-        <img src="slc-logo.png" class="role-hero__img" alt="SLC" />
-        <p class="role-hero__name">SLC Clinics &amp; Hospital</p>
-        <p class="role-hero__sub">ระบบจองหัตถการ &amp; คอร์สความงาม</p>
-      </div>
-      <div class="role-bottom">
-        <h2 class="role-title">เข้าสู่ระบบ</h2>
-        <p class="role-sub">เลือกประเภทผู้ใช้งาน</p>
+      <img src="slc-logo.png" class="role-logo" alt="SLC" />
+      <div>
+        <h2 class="role-title">ยินดีต้อนรับ</h2>
+        <p class="role-sub">กรุณาเลือกประเภทผู้ใช้งาน</p>
       </div>
       <div class="role-cards">
         <button class="role-card" data-role="patient">
