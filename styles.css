@@ -65,6 +65,9 @@ body {
   display: flex; flex-direction: column; align-items: center; gap: 16px;
 }
 .dn-logo { margin-bottom: 4px; }
+/* Logo image — ลบ background ขาวด้วย mix-blend-mode */
+.logo-img { display: block; mix-blend-mode: multiply; object-fit: contain; }
+.logo-img--hero { mix-blend-mode: screen; filter: brightness(10); } /* ขาวบน hero เข้ม */
 .dn-brand { font-family: var(--font-en); font-size: 18px; font-weight: 700;
   color: var(--ink); letter-spacing: .06em; }
 .dn-phone-icon { width: 80px; height: 80px; border-radius: 50%; background: var(--bg-2);
