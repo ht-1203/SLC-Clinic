@@ -687,8 +687,18 @@ body {
   opacity: 0; pointer-events: none; transition: .25s; z-index: 100; max-width: 300px; text-align: center; }
 .toast.is-show { opacity: 1; transform: translate(-50%, 0); }
 
-@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.view > * { animation: rise .2s ease both; }
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+/* GPU-accelerated, smooth easing */
+.view > * {
+  animation: rise .22s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  will-change: opacity, transform;
+}
+/* Remove will-change after animation to free memory */
+.view > * { animation-fill-mode: both; }
+
 /* Smooth card/row interactions */
 .card { transition: box-shadow .15s; }
 .row { transition: background .1s; }
@@ -697,4 +707,8 @@ body {
 .dpick { transition: background .12s, border-color .12s, color .12s; }
 .slot { transition: background .12s, border-color .12s, color .12s; }
 .seg__b { transition: background .15s, color .15s, box-shadow .15s; }
+
+/* Force GPU layer on scroll container */
+.view { transform: translateZ(0); -webkit-overflow-scrolling: touch; }
+
 @media (prefers-reduced-motion: reduce) { .view > * { animation: none; } }

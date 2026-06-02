@@ -310,13 +310,23 @@ function defaultRoomStaff(cat) {
 /* ---------- router ---------- */
 const State = { tab: 'home', view: 'home', opts: {}, booking: null };
 
-function go(view, opts = {}) { State.view = view; State.opts = opts; render(); $view.scrollTop = 0; }
-function setTab(tab) { State.tab = tab; go(tab); }
+function go(view, opts = {}) {
+  $view.scrollTop = 0;          // reset scroll ก่อน render
+  State.view = view; State.opts = opts;
+  render();
+}
+function setTab(tab) {
+  const changed = State.tab !== tab;
+  State.tab = tab;
+  go(tab);
+  if (changed) renderTabbar();  // render tabbar เฉพาะตอน tab เปลี่ยน
+}
 
+let _lastTab = null;
 function render() {
   const fn = VIEWS[State.view] || VIEWS.home;
   $view.innerHTML = fn(State.opts || {});
-  renderTabbar();
+  if (State.tab !== _lastTab) { renderTabbar(); _lastTab = State.tab; }
   bindView();
 }
 
