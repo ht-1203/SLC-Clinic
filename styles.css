@@ -58,10 +58,32 @@ body {
    APP SHELL
    ============================================================ */
 .app-shell {
-  max-width: 430px; min-height: 100vh; min-height: 100dvh;
-  margin: 0 auto; background: var(--bg);
+  min-height: 100vh; min-height: 100dvh;
+  background: var(--bg);
   position: relative; display: flex; flex-direction: column;
-  box-shadow: 0 0 80px rgba(0,0,0,.15);
+}
+
+/* ---- Mobile: full width ---- */
+@media (max-width: 767px) {
+  .app-shell { width: 100%; }
+}
+
+/* ---- Desktop: full width, content max-width centered ---- */
+@media (min-width: 768px) {
+  body { background: var(--bg); }
+  .app-shell { width: 100%; }
+
+  /* Center content on desktop */
+  .view { max-width: 680px; margin: 0 auto; width: 100%; }
+  .tabbar { max-width: 680px; left: 50%; transform: translateX(-50%); }
+
+  /* Overlay screens fill screen, content centered */
+  .role-screen, .cred-screen, .pin-screen {
+    max-width: 100%; left: 0; transform: none;
+  }
+  .role-wrap { max-width: 520px; margin: 0 auto; width: 100%; }
+  .cred-wrap { max-width: 480px; margin: 0 auto; width: 100%; }
+  .pin-top, .pin-pad { max-width: 400px; margin: 0 auto; width: 100%; }
 }
 
 /* ============================================================
