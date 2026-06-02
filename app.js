@@ -247,9 +247,11 @@ function showPIN(onSuccess, pinKey) {
 function doLogout() {
   const role = localStorage.getItem(ROLE_KEY);
   localStorage.removeItem(role === 'staff' ? PIN_KEY_STAFF : PIN_KEY_PATIENT);
-  localStorage.removeItem(PIN_KEY); // legacy
+  localStorage.removeItem(PIN_KEY);
   localStorage.removeItem(ROLE_KEY);
   supaSignOut().catch(()=>{});
+  $view.innerHTML = '';
+  $tabbar.innerHTML = '';
   showRoleSelect();
 }
 
