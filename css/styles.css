@@ -50,7 +50,7 @@ html, body { height: 100%; }
 body {
   font-family: var(--font-th);
   color: var(--ink);
-  background: #e8edf2;
+  background: var(--bg);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
