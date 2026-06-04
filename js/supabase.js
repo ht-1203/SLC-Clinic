@@ -115,13 +115,83 @@ async function supaSaveProfile(p) {
 
 /* ---- Staff: today's appointments with patient + package info ---- */
 async function supaLoadStaffAppts(dateIso) {
-  const { data, error } = await _supa
+  // appointments has user_id but no direct FK to profiles → manual join
+  const { data: appts, error } = await _supa
     .from('appointments')
-    .select('*, packages(name, cat), profiles(full_name, hn, tier)')
+    .select('*, packages(name, cat)')
     .eq('date', dateIso)
     .order('time');
   if (error) throw new Error(error.message);
+  if (!appts?.length) return [];
+
+  // Fetch profiles for all unique user_ids
+  const uids = [...new Set(appts.map(a => a.user_id).filter(Boolean))];
+  const { data: profiles } = await _supa
+    .from('profiles')
+    .select('user_id, full_name, hn, tier')
+    .in('user_id', uids);
+
+  const profileMap = Object.fromEntries((profiles || []).map(p => [p.user_id, p]));
+  return appts.map(a => ({ ...a, profile: profileMap[a.user_id] || null }));
+}
+
+/* ---- Staff: search patients ---- */
+async function supaSearchPatients(query) {
+  const q = query.trim();
+  if (!q) return [];
+  const { data, error } = await _supa
+    .from('profiles')
+    .select('user_id, full_name, hn, tier, phone')
+    .or(`full_name.ilike.%${q}%,hn.ilike.%${q}%`)
+    .limit(8);
+  if (error) throw new Error(error.message);
   return data || [];
+}
+
+/* ---- Staff: get patient packages ---- */
+async function supaGetPatientPackages(userId) {
+  const { data, error } = await _supa
+    .from('packages')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  return data || [];
+}
+
+/* ---- Staff: add course to patient ---- */
+async function supaAddCourseToPatient(userId, pkg) {
+  const { error } = await _supa.from('packages').insert({
+    id: pkg.id,
+    user_id: userId,
+    cat: pkg.cat,
+    name: pkg.name,
+    description: pkg.desc || null,
+    total: pkg.total,
+    used: 0,
+    price: pkg.price || null,
+    per_visit: pkg.perVisit || null,
+    note: pkg.note || null,
+    purchased_at: pkg.purchasedAt || null,
+    expiry: pkg.expiry || null,
+  });
+  if (error) throw new Error(error.message);
+}
+
+/* ---- Staff: confirm appointment ---- */
+async function supaConfirmAppt(apptId) {
+  const { error } = await _supa.from('appointments')
+    .update({ status: 'confirmed' }).eq('id', apptId);
+  if (error) throw new Error(error.message);
+}
+
+/* ---- Check double booking ---- */
+async function supaCheckDoubleBooking(userId, date, time) {
+  const { data } = await _supa.from('appointments')
+    .select('id').eq('user_id', userId)
+    .eq('date', date).eq('time', time)
+    .neq('status', 'cancelled').single();
+  return !!data;
 }
 
 async function supaCompleteAppt(apptId) {
@@ -178,12 +248,14 @@ async function supaLoad() {
   // Populate USER from profile if exists
   if (profileRes.data) {
     const p = profileRes.data;
+    // tier stored as 'GOLD' in DB → display as 'GOLD MEMBER' (never double-append)
+    const rawTier = (p.tier || 'MEMBER').toUpperCase().replace(/ MEMBER$/, '');
     Object.assign(USER, {
       id: p.hn ? `CU-${p.hn}` : USER.id,
       name: p.full_name?.split(' ')[0] || USER.name,
       fullName: p.full_name || USER.fullName,
       initials: p.initials || USER.initials,
-      tier: (p.tier || USER.tier) + ' MEMBER',
+      tier: rawTier + ' MEMBER',
       phone: p.phone || USER.phone,
       memberSince: p.member_since || USER.memberSince,
     });

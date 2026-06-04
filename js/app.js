@@ -50,7 +50,7 @@ function removeLayer(el, cb) {
 function showRoleSelect() {
   const el = mountLayer(`
     <div class="role-wrap">
-      <img src="slc-logo.png" class="role-logo" alt="SLC" />
+      <img src="assets/slc-logo.png" class="role-logo" alt="SLC" />
       <div>
         <h2 class="role-title">ยินดีต้อนรับ</h2>
         <p class="role-sub">กรุณาเลือกประเภทผู้ใช้งาน</p>
@@ -100,7 +100,7 @@ function showCredentials(role) {
   const el = mountLayer(`
     <div class="cred-wrap">
       <button class="cred-back" id="credBack">${icon('chevleft')} ย้อนกลับ</button>
-      <img src="slc-logo.png" class="cred-logo" alt="SLC" />
+      <img src="assets/slc-logo.png" class="cred-logo" alt="SLC" />
       <h2 class="cred-title">${isPatient ? 'เข้าสู่ระบบผู้รับบริการ' : 'เข้าสู่ระบบพนักงาน'}</h2>
 
       ${isPatient ? `
@@ -186,7 +186,7 @@ function showPIN(onSuccess, pinKey) {
   const isSetup = !stored;
   const el = mountLayer(`
     <div class="pin-top">
-      <img src="slc-logo.png" class="pin-logo" alt="SLC" />
+      <img src="assets/slc-logo.png" class="pin-logo" alt="SLC" />
       <p class="pin-hint" id="pinHint">${isSetup ? 'ตั้งรหัส PIN 4 หลัก' : 'กรอกรหัส PIN'}</p>
       <div class="pin-dots">
         <div class="pin-dot"></div><div class="pin-dot"></div>
@@ -244,12 +244,91 @@ function showPIN(onSuccess, pinKey) {
 }
 
 /* ============================================================
+   ADD COURSE TO PATIENT (Staff)
+   ============================================================ */
+function showAddCourseModal(userId, patientName) {
+  const CATS = Object.entries(CATEGORY).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('');
+  const el = mountLayer(`
+    <div class="cred-wrap">
+      <button class="cred-back" id="addCourseBack">${icon('chevleft')} ย้อนกลับ</button>
+      <h2 class="cred-title">เพิ่มคอร์ส</h2>
+      ${patientName ? `<p style="text-align:center;color:var(--muted);font-size:13px">สำหรับ ${patientName}</p>` : ''}
+      ${!userId ? `<div class="cred-field">
+        <label>HN ผู้ป่วย</label>
+        <div class="cred-input-wrap">${icon('card','ic--sm')}<input id="acHN" placeholder="เช่น 100245" /></div>
+      </div>` : ''}
+      <div class="cred-field">
+        <label>ชื่อคอร์ส</label>
+        <div class="cred-input-wrap">${icon('package','ic--sm')}<input id="acName" placeholder="เช่น Pico Laser หน้าใส" /></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="cred-field"><label>หมวดหมู่</label>
+          <select id="acCat" class="cred-input-wrap" style="border:1.5px solid var(--line-2);border-radius:var(--r-md);padding:14px 16px;font-family:var(--font-th);font-size:15px;background:var(--bg);width:100%">${CATS}</select>
+        </div>
+        <div class="cred-field"><label>จำนวนครั้ง</label>
+          <div class="cred-input-wrap">${icon('check','ic--sm')}<input id="acTotal" type="number" min="1" placeholder="10" /></div>
+        </div>
+      </div>
+      <div class="cred-field">
+        <label>ราคาทั้งหมด (บาท)</label>
+        <div class="cred-input-wrap">${icon('card','ic--sm')}<input id="acPrice" type="number" min="0" placeholder="39000" /></div>
+      </div>
+      <div class="cred-field">
+        <label>วันหมดอายุ (เช่น 31 ธ.ค. 2569)</label>
+        <div class="cred-input-wrap">${icon('calendar','ic--sm')}<input id="acExpiry" placeholder="31 ธ.ค. 2569" /></div>
+      </div>
+      <button class="btn btn--brand" id="acSave">บันทึกคอร์ส</button>
+      <p class="cred-note" id="acErr"></p>
+    </div>`, 'cred-screen');
+
+  el.querySelector('#addCourseBack').onclick = () => removeLayer(el, () => {});
+
+  el.querySelector('#acSave').onclick = async () => {
+    const name  = el.querySelector('#acName').value.trim();
+    const total = parseInt(el.querySelector('#acTotal').value) || 0;
+    const cat   = el.querySelector('#acCat').value;
+    const price = parseInt(el.querySelector('#acPrice').value) || 0;
+    const expiry = el.querySelector('#acExpiry').value.trim();
+    const err   = el.querySelector('#acErr');
+    const btn   = el.querySelector('#acSave');
+
+    let targetUserId = userId;
+    if (!targetUserId) {
+      const hn = el.querySelector('#acHN')?.value.trim();
+      if (!hn) { err.textContent = 'กรุณากรอก HN'; return; }
+      const patients = await supaSearchPatients(hn).catch(() => []);
+      const found = patients.find(p => p.hn === hn);
+      if (!found) { err.textContent = 'ไม่พบผู้ป่วย HN นี้'; return; }
+      targetUserId = found.user_id;
+    }
+    if (!name || total < 1) { err.textContent = 'กรุณากรอกชื่อคอร์สและจำนวนครั้ง'; return; }
+
+    btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+    try {
+      const now = new Date();
+      const pkg = {
+        id: `PKG-${Date.now()}`,
+        cat, name, total, price,
+        purchasedAt: `${now.getDate()} ${['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][now.getMonth()]} ${now.getFullYear() + 543}`,
+        expiry: expiry || '',
+      };
+      await supaAddCourseToPatient(targetUserId, pkg);
+      toast('เพิ่มคอร์สสำเร็จ');
+      removeLayer(el, () => {});
+    } catch(e) {
+      err.textContent = e.message || 'บันทึกไม่สำเร็จ';
+      btn.disabled = false; btn.textContent = 'บันทึกคอร์ส';
+    }
+  };
+}
+
+/* ============================================================
    PROFILE SETUP — แสดงเมื่อ patient เข้าครั้งแรก (ไม่มี profile)
    ============================================================ */
 function showProfileSetup(onDone) {
   const el = mountLayer(`
     <div class="cred-wrap">
-      <img src="slc-logo.png" class="cred-logo" alt="SLC" />
+      <img src="assets/slc-logo.png" class="cred-logo" alt="SLC" />
       <h2 class="cred-title">ตั้งค่าโปรไฟล์</h2>
       <p style="font-size:13px;color:var(--muted);text-align:center;margin-top:-8px">กรุณากรอกข้อมูลเพื่อเริ่มใช้งาน</p>
       <div class="cred-field">
@@ -291,7 +370,7 @@ function showProfileSetup(onDone) {
         id: hn ? `CU-${hn}` : USER.id,
         name: name.split(' ')[0], fullName: name,
         initials: name.charAt(0), phone,
-        tier: 'GOLD MEMBER', memberSince: profile.memberSince,
+        tier: 'MEMBER', memberSince: profile.memberSince,
       });
       removeLayer(el, () => { onDone(); render(); });
     } catch(e) {
@@ -533,9 +612,9 @@ function showQRScanner() {
             .from('appointments').select('*, packages(name)')
             .eq('id', apptId).single();
           if (error || !data) throw new Error('ไม่พบนัดหมาย');
-          // Mark confirmed
+          // Mark completed after QR check-in
           await _supa.from('appointments')
-            .update({ status: 'confirmed' }).eq('id', apptId);
+            .update({ status: 'completed' }).eq('id', apptId);
           el.innerHTML = `
             <div class="qrs-success">
               <div class="qrs-ok">✓</div>
@@ -664,6 +743,7 @@ const VIEWS = {
   /* ---------- COURSE DETAIL ---------- */
   courseDetail({ id }) {
     const c = courseById(id);
+    if (!c) { go('courses'); return ''; }
     const cat = catOf(c.cat);
     const r = remaining(c);
     return `
@@ -752,7 +832,9 @@ const VIEWS = {
   /* ---------- BOOKING step 3 ---------- */
   bookConfirm() {
     const b = State.booking;
+    if (!b?.treatment) { go('book'); return ''; }
     const t = TREATMENTS.find(x => x.id === b.treatment);
+    if (!t) { go('book'); return ''; }
     const cat = catOf(t.cat);
     const c = t.owned ? courseById(t.id) : null;
     return `
@@ -937,7 +1019,17 @@ const VIEWS = {
       </div>
       <div class="avatar-btn" data-go="profile">${icon('user')}</div>
     </div>
-    <div id="staffList" class="pad stack" style="margin-top:8px">
+    <div class="pad" style="padding-top:12px">
+      <div class="cred-input-wrap">
+        ${icon('search','ic--sm')}
+        <input id="staffSearch" type="search" placeholder="ค้นหา HN หรือชื่อผู้ป่วย..." autocomplete="off" />
+      </div>
+    </div>
+    <div id="staffSearchRes" class="pad stack" style="margin-top:4px;display:none"></div>
+    <div class="sec" style="padding-top:16px"><span class="label">นัดวันนี้</span>
+      <button class="btn btn--dark btn--sm" data-act="add-course">${icon('plus','ic--sm')} เพิ่มคอร์ส</button>
+    </div>
+    <div id="staffList" class="pad stack">
       <div class="empty">${icon('clock','ic--lg')}<p>กำลังโหลด...</p></div>
     </div>
     <div class="spacer"></div>`;
@@ -978,27 +1070,30 @@ function bookOpt(t, b) {
 
 function apptCard(a) {
   const c = courseById(a.courseId);
-  if (!c) return ''; // Bug #7: guard deleted course
+  if (!c) return '';
   const fd = fmtApptDate(a.date);
-  const tag = a.status === 'confirmed'
-    ? `<span class="tag tag--ok">${icon('check','ic--sm')} ยืนยันแล้ว</span>`
-    : `<span class="tag tag--mute">${icon('clock','ic--sm')} รอยืนยัน</span>`;
+  const isCompleted = a.status === 'completed';
+  const tag = isCompleted
+    ? `<span class="tag tag--ink">${icon('check','ic--sm')} เสร็จแล้ว</span>`
+    : a.status === 'confirmed'
+      ? `<span class="tag tag--ok">${icon('check','ic--sm')} ยืนยันแล้ว</span>`
+      : `<span class="tag tag--mute">${icon('clock','ic--sm')} รอยืนยัน</span>`;
   return `<div class="card">
     <div class="row" style="padding:0;border:0">
-      <div class="row__ic" style="background:var(--ink);color:#fff;flex-direction:column;gap:0">
+      <div class="row__ic" style="background:${isCompleted ? 'var(--muted)' : 'var(--ink)'};color:#fff;flex-direction:column;gap:0">
         <div style="font-family:var(--font-dp);font-weight:600;font-size:18px;line-height:1">${fd.d}</div>
         <div style="font-size:9px;letter-spacing:.05em">${fd.m}</div>
       </div>
       <div class="row__main">
         <div class="row__t">${c.name}</div>
-        <div class="row__s">${a.time} น. · ${a.staff} · ${a.room}</div>
+        <div class="row__s">${a.time} น. · ${a.staff || ''} · ${a.room || ''}</div>
       </div>
       ${tag}
     </div>
-    <div style="display:flex;gap:9px;margin-top:14px">
+    ${!isCompleted ? `<div style="display:flex;gap:9px;margin-top:14px">
       <button class="btn btn--cream btn--sm" style="flex:1" data-appt-qr="${a.id}">${icon('qr','ic--sm')} QR เช็คอิน</button>
       <button class="btn btn--ghost btn--sm" style="flex:1" data-appt-cancel="${a.id}">ยกเลิก</button>
-    </div>
+    </div>` : ''}
   </div>`;
 }
 
@@ -1121,6 +1216,41 @@ function bindView() {
     else toast('ฟีเจอร์นี้อยู่ระหว่างพัฒนา');
   });
 
+  /* Staff: patient search */
+  const staffSearch = $view.querySelector('#staffSearch');
+  if (staffSearch) {
+    let _searchT;
+    staffSearch.oninput = function() {
+      const q = this.value.trim();
+      const res = $view.querySelector('#staffSearchRes');
+      clearTimeout(_searchT);
+      if (!q) { res.style.display = 'none'; res.innerHTML = ''; return; }
+      _searchT = setTimeout(async () => {
+        try {
+          const patients = await supaSearchPatients(q);
+          res.style.display = patients.length ? '' : 'none';
+          res.innerHTML = patients.map(p => `
+            <div class="card" style="cursor:pointer;padding:14px 18px" data-patient-uid="${p.user_id}" data-patient-name="${p.full_name || ''}">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div class="row__ic">${icon('user')}</div>
+                <div><div class="row__t">${p.full_name || 'ไม่ระบุชื่อ'}</div>
+                <div class="row__s">HN: ${p.hn || '-'} · ${p.phone || ''}</div></div>
+                <button class="btn btn--dark btn--sm" style="margin-left:auto;flex:0 0 auto" data-add-course-uid="${p.user_id}" data-add-course-name="${p.full_name || ''}">+ คอร์ส</button>
+              </div>
+            </div>`).join('');
+          res.querySelectorAll('[data-add-course-uid]').forEach(btn => {
+            btn.onclick = (e) => { e.stopPropagation(); showAddCourseModal(btn.dataset.addCourseUid, btn.dataset.addCourseName); };
+          });
+        } catch(e) { res.style.display = 'none'; }
+      }, 350);
+    };
+  }
+
+  /* Staff: add course button (no patient selected) */
+  $view.querySelectorAll('[data-act="add-course"]').forEach(btn => {
+    btn.onclick = () => showAddCourseModal(null, null);
+  });
+
   /* Staff dashboard — โหลด appointments ทุกคนวันนี้จาก Supabase */
   const staffList = $view.querySelector('#staffList');
   if (staffList) {
@@ -1137,8 +1267,8 @@ function bindView() {
               <div style="font-size:9px;letter-spacing:.04em">น.</div>
             </div>
             <div class="row__main">
-              <div class="row__t">${a.profiles?.full_name || 'ผู้ป่วย'}</div>
-              <div class="row__s">${a.packages?.name || a.package_id || '-'}${a.profiles?.hn ? ' · HN ' + a.profiles.hn : ''}</div>
+              <div class="row__t">${a.profile?.full_name || 'ผู้ป่วย'}</div>
+              <div class="row__s">${a.packages?.name || a.package_id || '-'}${a.profile?.hn ? ' · HN ' + a.profile.hn : ''}</div>
             </div>
             <span class="tag tag--${a.status === 'completed' ? 'ink' : a.status === 'confirmed' ? 'ok' : 'mute'}">${
               a.status === 'completed' ? 'เสร็จแล้ว' : a.status === 'confirmed' ? 'ยืนยัน' : 'รอยืนยัน'
@@ -1175,8 +1305,12 @@ function bindView() {
       const t = TREATMENTS.find(x => x.id === State.booking.treatment);
       const c = t?.owned ? courseById(State.booking.treatment) : null;
       if (c && remaining(c) <= 0) { toast('ไม่มีสิทธิ์เหลือ'); _saving = false; return; }
+      // Double booking check (local)
+      const clash = APPOINTMENTS.find(a =>
+        a.date === State.booking.date && a.time === State.booking.time && a.status !== 'cancelled'
+      );
+      if (clash) { toast('เวลานี้มีนัดอยู่แล้ว กรุณาเลือกเวลาอื่น'); _saving = false; return; }
       if (c) c.used += 1;
-      // Sync TREATMENTS after deduct
       if (t) t.owned = c ? remaining(c) > 0 : false;
       const rs = t?.cat ? defaultRoomStaff(t.cat) : defaultRoomStaff('facial');
       const newAppt = {
@@ -1256,6 +1390,20 @@ function boot() {
   showSplash(() => showRoleSelect());
 }
 
+/* ---- Push Notification subscription (browser-side) ---- */
+async function requestPushPermission() {
+  if (!('Notification' in window) || !navigator.serviceWorker) return;
+  try {
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') return;
+    const reg = await navigator.serviceWorker.ready;
+    // VAPID public key needed for production push — replace with real key
+    // const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: 'YOUR_VAPID_PUBLIC_KEY' });
+    // Store subscription: await supaSavePushSubscription(sub);
+    console.info('[Push] permission granted — ready for VAPID subscription');
+  } catch(e) { console.warn('[Push]', e.message); }
+}
+
 function startApp() {
   lsLoad();
   try {
@@ -1269,5 +1417,7 @@ function startApp() {
     }
   } catch(e) { console.error('render error:', e); }
   bgSync();
+  // Request push permission after a short delay (don't interrupt first render)
+  setTimeout(requestPushPermission, 3000);
 }
 boot();
