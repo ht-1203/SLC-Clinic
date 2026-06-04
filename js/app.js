@@ -805,29 +805,32 @@ function stampCard(c) {
   const usedPct = Math.round((c.used / c.total) * 100);
   const ppu = fmtBaht(Math.round(c.price / c.total));
   return `<div class="stampcard" data-course="${c.id}">
-    <div class="stampcard__brand">
-      <svg class="slc-mark" viewBox="0 0 20 13" aria-hidden="true">
-        <path d="M10 9C8 4 2 2 1 6C0 10 5 11 10 9Z" fill="currentColor"/>
-        <path d="M10 9C12 4 18 2 19 6C20 10 15 11 10 9Z" fill="currentColor"/>
-        <ellipse cx="10" cy="10" rx="1.2" ry="1.8" fill="currentColor"/>
-      </svg>
-      SLC Clinics &amp; Hospital
+    <div class="stampcard__top">
+      <div class="stampcard__brand">
+        <svg class="slc-mark" viewBox="0 0 20 13" aria-hidden="true">
+          <path d="M10 9C8 4 2 2 1 6C0 10 5 11 10 9Z" fill="currentColor"/>
+          <path d="M10 9C12 4 18 2 19 6C20 10 15 11 10 9Z" fill="currentColor"/>
+          <ellipse cx="10" cy="10" rx="1.2" ry="1.8" fill="currentColor"/>
+        </svg>
+        SLC Clinics &amp; Hospital
+      </div>
+      <div class="stampcard__cat">${icon(cat.icon,'ic--sm')} ${cat.label}</div>
+      <div class="stampcard__title">${c.name}</div>
     </div>
-    <div class="stampcard__cat">${icon(cat.icon,'ic--sm')} ${cat.label}</div>
-    <div class="stampcard__title">${c.name}</div>
-    <div class="stampcard__desc">${c.desc}</div>
-    ${stamps(c)}
+    <div class="stampcard__stamps-wrap">
+      ${stamps(c)}
+    </div>
     <div class="stampcard__foot">
       <div class="stampcard__count">
         <div class="big">${remaining(c)}<small> / ${c.total}</small></div>
-        <div class="lab">${low ? 'เหลือน้อย — ครั้งสุดท้าย' : 'สิทธิ์คงเหลือ'}</div>
+        <div class="lab">${low ? 'เหลือน้อย' : 'สิทธิ์คงเหลือ'}</div>
       </div>
       <div class="stampcard__exp">หมดอายุ<b>${c.expiry}</b></div>
     </div>
     <div class="stampcard__bar">
       <div class="sbar-track"><div class="sbar-fill" style="width:${usedPct}%"></div></div>
       <div class="sbar-meta">
-        <span>ใช้ไปแล้ว ${c.used} จาก ${c.total} ครั้ง</span>
+        <span>${c.used} / ${c.total} ครั้ง</span>
         <span>${ppu} / ครั้ง</span>
       </div>
     </div>
