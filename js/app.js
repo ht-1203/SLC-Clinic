@@ -477,27 +477,128 @@ function render() {
   $view.innerHTML = fn(State.opts || {});
   $view.classList.toggle('view--home', State.view === 'home');
   if (State.tab !== _lastTab) { renderTabbar(); _lastTab = State.tab; }
+  else if (window.innerWidth >= 1024) { renderTabbar(); } // keep sidebar active state updated
   bindView();
+  renderRightPanel();
 }
+
+// Re-render nav on window resize (mobile ↔ desktop)
+let _resizeT;
+window.addEventListener('resize', () => {
+  clearTimeout(_resizeT);
+  _resizeT = setTimeout(() => { renderTabbar(); renderRightPanel(); }, 150);
+});
 
 /* ============================================================
    FLOATING NAV + SCAN
    ============================================================ */
 function renderTabbar() {
   const tabs = [
-    { id: 'home',    icon: 'home' },
-    { id: 'courses', icon: 'package' },
-    { id: 'appts',   icon: 'calendar' },
+    { id: 'home',    icon: 'home',     label: 'หน้าแรก' },
+    { id: 'courses', icon: 'package',  label: 'คอร์สของฉัน' },
+    { id: 'appts',   icon: 'calendar', label: 'นัดหมาย' },
   ];
   const isStaffUser = localStorage.getItem(ROLE_KEY) === 'staff';
-  $tabbar.innerHTML = `
-    <div class="navpill">
-      ${tabs.map(t => `<div class="tab${State.tab === t.id ? ' is-active' : ''}" data-tab="${t.id}">${icon(t.icon)}</div>`).join('')}
-    </div>
-    ${isStaffUser ? `<div class="scanbtn" data-act="scan">${icon('scan')}<span>SCAN</span></div>` : ''}`;
+  const isDesktop = window.innerWidth >= 1024;
+
+  if (isDesktop) {
+    $tabbar.innerHTML = `
+      <div class="sidebar-logo">
+        <img src="assets/slc-logo.png" class="sidebar-logo__img" alt="SLC" />
+        <div>
+          <div class="sidebar-logo__name">SLC Clinics</div>
+          <div class="sidebar-logo__sub">&amp; Hospital</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <span class="sidebar-section">เมนูหลัก</span>
+        ${tabs.map(t => `
+          <div class="sidebar-item${State.tab === t.id && !['staffDashboard','profile','history','receipts','contact'].includes(State.view) ? ' is-active' : ''}" data-tab="${t.id}">
+            ${icon(t.icon)} <span>${t.label}</span>
+          </div>`).join('')}
+        ${isStaffUser ? `
+          <div class="sidebar-item${State.view === 'staffDashboard' ? ' is-active' : ''}" data-go="staffDashboard">
+            ${icon('shield')} <span>Staff Dashboard</span>
+          </div>` : ''}
+      </nav>
+      <div class="sidebar-footer">
+        <span class="sidebar-section" style="padding-top:0">บัญชีผู้ใช้</span>
+        <div class="sidebar-item${State.view === 'profile' ? ' is-active' : ''}" data-go="profile">
+          ${icon('user')} <span>โปรไฟล์</span>
+        </div>
+        <div class="sidebar-item${State.view === 'contact' ? ' is-active' : ''}" data-go="contact">
+          ${icon('phone')} <span>ติดต่อคลินิก</span>
+        </div>
+        ${isStaffUser ? `<div class="sidebar-item" data-act="scan">
+          ${icon('scan')} <span>สแกน QR</span>
+        </div>` : ''}
+      </div>`;
+  } else {
+    $tabbar.innerHTML = `
+      <div class="navpill">
+        ${tabs.map(t => `<div class="tab${State.tab === t.id ? ' is-active' : ''}" data-tab="${t.id}">${icon(t.icon)}</div>`).join('')}
+      </div>
+      ${isStaffUser ? `<div class="scanbtn" data-act="scan">${icon('scan')}<span>SCAN</span></div>` : ''}`;
+  }
+
   $tabbar.querySelectorAll('[data-tab]').forEach(el => el.onclick = () => setTab(el.dataset.tab));
+  $tabbar.querySelectorAll('[data-go]').forEach(el => el.onclick = () => go(el.dataset.go));
   const scanBtn = $tabbar.querySelector('[data-act="scan"]');
   if (scanBtn) scanBtn.onclick = () => showQRScanner();
+}
+
+function renderRightPanel() {
+  const $rp = document.getElementById('rightpanel');
+  if (!$rp || window.innerWidth < 1024) return;
+  const upcoming = APPOINTMENTS.filter(a => a.date >= TODAY_ISO && a.status !== 'completed').slice(0, 4);
+  $rp.innerHTML = `
+    <div class="rp-profile">
+      <div class="rp-ava">${USER.initials}</div>
+      <div>
+        <div class="rp-name">${USER.fullName}</div>
+        <div class="rp-meta">${USER.id}</div>
+        <div style="margin-top:6px"><span class="tag tag--ink">${icon('star','ic--sm')} ${USER.tier}</span></div>
+      </div>
+    </div>
+    <div class="rp-section">
+      <div class="rp-label">นัดหมายที่กำลังจะถึง</div>
+      ${upcoming.length ? upcoming.map(a => {
+        const c = courseById(a.courseId);
+        if (!c) return '';
+        const fd = fmtApptDate(a.date);
+        return `<div class="rp-appt">
+          <div class="rp-appt__date">${fd.d}<span>${fd.m}</span></div>
+          <div class="rp-appt__info">
+            <div class="rp-appt__t">${c.name}</div>
+            <div class="rp-appt__s">${a.time} น. · ${a.staff || 'แพทย์'}</div>
+          </div>
+          <span class="tag tag--${a.status === 'confirmed' ? 'ok' : 'mute'}" style="flex:0 0 auto;font-size:10px">${a.status === 'confirmed' ? 'ยืนยัน' : 'รอ'}</span>
+        </div>`;
+      }).join('') : `<div class="empty" style="padding:12px 0;color:var(--muted);font-size:13px;text-align:center">${icon('calendar','ic--lg')}<p style="margin-top:8px">ไม่มีนัดที่กำลังจะถึง</p></div>`}
+    </div>
+    <div class="rp-section">
+      <div class="rp-label">การดำเนินการ</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="btn btn--dark btn--sm" style="width:100%;justify-content:flex-start" data-rp-go="book">${icon('plus','ic--sm')} จองหัตถการ</button>
+        <button class="btn btn--ghost btn--sm" style="width:100%;justify-content:flex-start" data-rp-go="courses">${icon('package','ic--sm')} คอร์สของฉัน</button>
+        <button class="btn btn--ghost btn--sm" style="width:100%;justify-content:flex-start" data-rp-go="history">${icon('history','ic--sm')} ประวัติการใช้บริการ</button>
+      </div>
+    </div>
+    <div class="rp-section">
+      <div class="rp-label">สถิติ</div>
+      <div class="card" style="padding:14px">
+        <div class="statline">
+          <div><div class="n">${COURSES.length}</div><div class="l">คอร์ส</div></div>
+          <div><div class="n">${APPOINTMENTS.filter(a=>a.status==='completed').length}</div><div class="l">ครั้งที่รับ</div></div>
+          <div><div class="n">${COURSES.reduce((s,c)=>s+remaining(c),0)}</div><div class="l">สิทธิ์เหลือ</div></div>
+        </div>
+      </div>
+    </div>`;
+  $rp.querySelectorAll('[data-rp-go]').forEach(el => el.onclick = () => {
+    const v = el.dataset.rpGo;
+    if (v === 'book') { setTab('appts'); setTimeout(() => setTab('home'), 10); go('book'); }
+    else { go(v); }
+  });
 }
 
 function showQRCheckinModal(appt) {

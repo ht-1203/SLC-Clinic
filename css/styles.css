@@ -798,3 +798,193 @@ body {
   padding-top: 10px;
   padding-bottom: calc(clamp(88px, 24vw, 108px) + env(safe-area-inset-bottom));
 }
+
+/* ============================================================
+   DESKTOP DASHBOARD — 3-column layout (≥ 1024px)
+   Left sidebar | Main content | Right panel
+   ============================================================ */
+.rightpanel { display: none; }
+
+@media (min-width: 1024px) {
+  body { background: var(--bg-2); }
+
+  /* App shell → row layout */
+  .app-shell {
+    flex-direction: row;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  /* ── Left sidebar ── */
+  .tabbar {
+    position: relative !important;
+    bottom: auto !important; left: auto !important;
+    transform: none !important;
+    width: 230px; min-width: 230px; max-width: 230px;
+    height: 100vh; height: 100dvh;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0;
+    padding: 24px 14px 24px;
+    background: var(--bg);
+    border-right: 1px solid var(--line);
+    box-shadow: none;
+    pointer-events: auto;
+    overflow-y: auto;
+  }
+  /* hide mobile pill nav on desktop */
+  .tabbar .navpill,
+  .tabbar .scanbtn { display: none; }
+
+  /* Sidebar logo */
+  .sidebar-logo {
+    display: flex; align-items: center; gap: 10px;
+    padding: 4px 8px 20px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 12px;
+  }
+  .sidebar-logo__img {
+    width: 36px; height: 36px; object-fit: contain; border-radius: 8px;
+  }
+  .sidebar-logo__name {
+    font-family: var(--font-en); font-weight: 700; font-size: 13px;
+    color: var(--ink); letter-spacing: .02em; line-height: 1.2;
+  }
+  .sidebar-logo__sub { font-size: 10.5px; color: var(--muted); }
+
+  /* Sidebar nav items */
+  .sidebar-nav {
+    display: flex; flex-direction: column; gap: 2px; flex: 1;
+  }
+  .sidebar-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 12px; cursor: pointer;
+    font-size: 14px; font-weight: 500; color: var(--ink-2);
+    transition: background .12s, color .12s;
+    white-space: nowrap;
+  }
+  .sidebar-item:hover { background: var(--bg-2); color: var(--ink); }
+  .sidebar-item.is-active { background: var(--ink); color: #fff; }
+  .sidebar-item .ic svg { width: 17px; height: 17px; flex-shrink: 0; }
+
+  /* Sidebar section label */
+  .sidebar-section {
+    font-size: 10px; font-weight: 700; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--muted);
+    font-family: var(--font-en); padding: 14px 12px 6px;
+  }
+
+  /* Sidebar footer */
+  .sidebar-footer {
+    margin-top: 16px; padding-top: 16px;
+    border-top: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: 2px;
+  }
+
+  /* ── Main view ── */
+  .view {
+    flex: 1 1 0;
+    height: 100vh; height: 100dvh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 40px;
+    background: var(--bg-2);
+  }
+  .view::-webkit-scrollbar { width: 5px; }
+  .view::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 100px; }
+
+  /* Topbar on desktop */
+  .topbar {
+    position: sticky; top: 0; z-index: 20;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    padding: 16px var(--pad-x);
+    backdrop-filter: blur(8px);
+  }
+  /* Hide avatar on desktop (profile in sidebar) */
+  .topbar .avatar-btn { display: none; }
+
+  /* Loading screen full-width on desktop */
+  .loading-screen { position: fixed; }
+
+  /* ── Right panel ── */
+  .rightpanel {
+    display: flex; flex-direction: column;
+    width: 300px; min-width: 300px;
+    height: 100vh; height: 100dvh;
+    overflow-y: auto;
+    background: var(--bg);
+    border-left: 1px solid var(--line);
+    padding: 24px 18px;
+    gap: 0;
+  }
+  .rightpanel::-webkit-scrollbar { width: 0; }
+
+  .rp-profile {
+    display: flex; align-items: center; gap: 12px;
+    padding-bottom: 18px; border-bottom: 1px solid var(--line); margin-bottom: 20px;
+  }
+  .rp-ava {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--dark); color: var(--cream);
+    display: grid; place-items: center;
+    font-family: var(--font-dp); font-weight: 700; font-size: 18px;
+    flex-shrink: 0;
+  }
+  .rp-name { font-weight: 700; font-size: 14px; }
+  .rp-meta { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+
+  .rp-section { margin-bottom: 22px; }
+  .rp-label {
+    font-size: 10.5px; font-weight: 700; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--muted);
+    font-family: var(--font-en); margin-bottom: 10px;
+  }
+
+  .rp-appt {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid var(--line);
+  }
+  .rp-appt:last-child { border-bottom: 0; }
+  .rp-appt__date {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: var(--ink); color: #fff;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    flex-shrink: 0; font-family: var(--font-dp); font-weight: 700;
+    font-size: 15px; line-height: 1;
+  }
+  .rp-appt__date span { font-size: 8px; font-family: var(--font-th); font-weight: 400; }
+  .rp-appt__info { flex: 1; min-width: 0; }
+  .rp-appt__t {
+    font-size: 13px; font-weight: 600;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .rp-appt__s { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* Stamp card on desktop — fixed height, no full-viewport stretch */
+  .view--home { overflow-y: auto; padding-bottom: 40px; }
+  .view--home .deck {
+    overflow-x: auto; overflow-y: hidden;
+    flex: none; min-height: 0;
+    height: clamp(340px, 52vh, 520px);
+  }
+  .view--home .deck__cell { height: 100%; }
+  .view--home .stampcard { height: 100%; }
+  .view--home .stamps { flex: 1; min-height: 0; grid-auto-rows: 1fr; }
+  .view--home .stamp { aspect-ratio: unset; }
+  .view--home .dots { padding-bottom: 8px; }
+
+  /* Pagehead on desktop */
+  .pagehead {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+  }
+
+  /* Desktop auth screens stay centered */
+  .role-screen, .cred-screen, .pin-screen {
+    width: 100% !important;
+  }
+}
