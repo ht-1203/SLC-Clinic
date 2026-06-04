@@ -51,9 +51,12 @@ body {
   font-family: var(--font-th);
   color: var(--ink);
   background: var(--bg);
+  font-style: normal;
+  font-synthesis: none;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
+* { font-style: normal; }
 
 /* Logo image utility */
 .logo-img { display: block; object-fit: contain; }

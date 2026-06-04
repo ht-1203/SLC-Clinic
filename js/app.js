@@ -629,8 +629,8 @@ function showQRCheckinModal(appt) {
       </div>
     </div>`;
   screen.appendChild(ov);
-  QRCode.toCanvas(document.getElementById('qr-canvas'), `${USER.id}:${appt.id}`, {
-    width: 200, margin: 2,
+  QRCode.toCanvas(document.getElementById('qr-canvas'), `${USER.id}:${appt.id}:${appt.courseId || ''}`, {
+    width: 220, margin: 2,
     color: { dark: '#1A3040', light: '#ffffff' },
   });
   const close = () => ov.remove();
@@ -700,33 +700,79 @@ function showQRScanner() {
     window._qrScanner = new Html5Qrcode('qrs-reader');
     window._qrScanner.start(
       { facingMode: 'environment' },
-      { fps: 10, qrbox: { width: 250, height: 250 } },
+      { fps: 10, qrbox: { width: 240, height: 240 } },
       async (text) => {
-        // QR format: "userId:appointmentId"
+        // QR format: "userId:appointmentId:courseId"
         window._qrScanner.stop().catch(()=>{});
-        const [uid, apptId] = text.split(':');
+        const parts = text.split(':');
+        const apptId   = parts[1] || '';
+        const courseId = parts[2] || '';
         const el = document.getElementById('qrs-result');
         if (!el) return;
         el.innerHTML = `<div class="qrs-loading">กำลังตรวจสอบ...</div>`;
         try {
+          // Fetch appointment + package details
           const { data, error } = await _supa
-            .from('appointments').select('*, packages(name)')
+            .from('appointments')
+            .select('*, packages(name, cat, total, used)')
             .eq('id', apptId).single();
-          if (error || !data) throw new Error('ไม่พบนัดหมาย');
-          // Mark completed after QR check-in
+          if (error || !data) throw new Error('ไม่พบนัดหมายนี้');
+
+          // Fetch patient profile
+          const { data: profile } = await _supa
+            .from('profiles')
+            .select('full_name, hn, tier')
+            .eq('user_id', data.user_id)
+            .single().catch(() => ({ data: null }));
+
+          // Mark completed
           await _supa.from('appointments')
             .update({ status: 'completed' }).eq('id', apptId);
+
+          const pkg = data.packages;
+          const catLabel = pkg?.cat ? (CATEGORY[pkg.cat]?.label || pkg.cat) : 'หัตถการ';
+          const usedAfter = pkg ? pkg.used : 0;
+          const totalSessions = pkg ? pkg.total : 0;
+          const leftAfter = totalSessions - usedAfter;
+
           el.innerHTML = `
             <div class="qrs-success">
-              <div class="qrs-ok">✓</div>
-              <div class="qrs-name">${data.packages?.name || 'คอร์ส'}</div>
-              <div class="qrs-info">${data.date} เวลา ${data.time} น.</div>
-              <div class="qrs-badge">เช็คอินสำเร็จ</div>
+              <div class="qrs-ok" style="background:#00b386;width:54px;height:54px;font-size:28px;border-radius:50%;display:grid;place-items:center">✓</div>
+              <div class="qrs-name">${profile?.full_name || 'ผู้รับบริการ'}</div>
+              <div class="qrs-info" style="color:rgba(255,255,255,.6)">
+                ${profile?.hn ? 'HN: ' + profile.hn + ' · ' : ''}${profile?.tier || ''}
+              </div>
+              <div style="width:100%;background:rgba(255,255,255,.08);border-radius:16px;padding:16px 18px;margin:10px 0;text-align:left">
+                <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);font-family:var(--font-en);margin-bottom:6px">${catLabel}</div>
+                <div style="font-family:var(--font-dp);font-size:19px;font-weight:600;color:#fff;line-height:1.2">${pkg?.name || 'คอร์ส'}</div>
+                <div style="font-size:12px;color:rgba(255,255,255,.55);margin-top:6px">${data.date} · ${data.time} น. · ${data.room || ''}</div>
+                ${pkg ? `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.12)">
+                  <div style="font-size:12px;color:rgba(255,255,255,.5)">สิทธิ์คงเหลือหลังครั้งนี้</div>
+                  <div style="font-family:var(--font-dp);font-size:24px;font-weight:700;color:#fff;line-height:1">
+                    ${leftAfter}<span style="font-size:13px;font-weight:400;color:rgba(255,255,255,.4)">/${totalSessions}</span>
+                  </div>
+                </div>` : ''}
+              </div>
+              <div class="qrs-badge" style="background:#00b386;font-size:14px;padding:10px 28px;border-radius:100px;cursor:pointer" id="qrs-done">
+                ✓ เช็คอินสำเร็จ — ปิด
+              </div>
             </div>`;
+
+          document.getElementById('qrs-done').onclick = () => {
+            ov.remove();
+            // Navigate to staff dashboard and refresh
+            go('staffDashboard');
+            renderTabbar();
+          };
+
         } catch(e) {
-          el.innerHTML = `<div class="qrs-error">ไม่พบนัดหมายนี้</div>`;
+          el.innerHTML = `
+            <div class="qrs-error" style="text-align:center;padding:20px">
+              <div style="font-size:32px;margin-bottom:8px">✗</div>
+              <div>${e.message || 'ไม่พบนัดหมายนี้'}</div>
+              <button style="margin-top:16px;background:rgba(255,255,255,.15);border:0;color:#fff;padding:10px 24px;border-radius:100px;cursor:pointer;font-size:13px" onclick="location.reload()">สแกนใหม่</button>
+            </div>`;
         }
-        setTimeout(() => { if (ov.parentNode) ov.remove(); }, 3000);
       },
       () => {}
     ).catch(e => {
