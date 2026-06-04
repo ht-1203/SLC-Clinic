@@ -781,7 +781,8 @@ body {
 .view--home .deck {
   flex: 1 1 0;
   min-height: 0;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   padding-bottom: 0;
 }
 .view--home .deck__cell { height: 100%; }
