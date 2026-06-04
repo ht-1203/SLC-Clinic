@@ -802,37 +802,16 @@ function stamps(c) {
 function stampCard(c) {
   const cat = catOf(c.cat);
   const low = remaining(c) <= 1;
-  const usedPct = Math.round((c.used / c.total) * 100);
-  const ppu = fmtBaht(Math.round(c.price / c.total));
   return `<div class="stampcard" data-course="${c.id}">
-    <div class="stampcard__top">
-      <div class="stampcard__brand">
-        <svg class="slc-mark" viewBox="0 0 20 13" aria-hidden="true">
-          <path d="M10 9C8 4 2 2 1 6C0 10 5 11 10 9Z" fill="currentColor"/>
-          <path d="M10 9C12 4 18 2 19 6C20 10 15 11 10 9Z" fill="currentColor"/>
-          <ellipse cx="10" cy="10" rx="1.2" ry="1.8" fill="currentColor"/>
-        </svg>
-        SLC Clinics &amp; Hospital
-      </div>
-      <div class="stampcard__cat">${icon(cat.icon,'ic--sm')} ${cat.label}</div>
-      <div class="stampcard__title">${c.name}</div>
+    <div class="sc-header">
+      <span class="sc-brand">SLC Clinics &amp; Hospital</span>
+      <span class="sc-badge ${low ? 'sc-badge--low' : ''}">${remaining(c)} เหลือ</span>
     </div>
-    <div class="stampcard__stamps-wrap">
-      ${stamps(c)}
-    </div>
-    <div class="stampcard__foot">
-      <div class="stampcard__count">
-        <div class="big">${remaining(c)}<small> / ${c.total}</small></div>
-        <div class="lab">${low ? 'เหลือน้อย' : 'สิทธิ์คงเหลือ'}</div>
-      </div>
-      <div class="stampcard__exp">หมดอายุ<b>${c.expiry}</b></div>
-    </div>
-    <div class="stampcard__bar">
-      <div class="sbar-track"><div class="sbar-fill" style="width:${usedPct}%"></div></div>
-      <div class="sbar-meta">
-        <span>${c.used} / ${c.total} ครั้ง</span>
-        <span>${ppu} / ครั้ง</span>
-      </div>
+    <div class="sc-name">${c.name}</div>
+    <div class="sc-stamps">${stamps(c)}</div>
+    <div class="sc-footer">
+      <span>${icon(cat.icon,'ic--sm')} ${cat.label}</span>
+      <span>หมดอายุ ${c.expiry}</span>
     </div>
   </div>`;
 }

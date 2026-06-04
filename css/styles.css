@@ -224,47 +224,85 @@ body {
 .deck__cell { flex: 0 0 100%; scroll-snap-align: center; }
 @media (min-width: 460px) { .deck__cell { flex: 0 0 calc(100% - 0px); } }
 
+/* ── Stamp Card — reference-inspired layout ── */
 .stampcard {
   position: relative; border-radius: var(--r-xl); overflow: hidden; cursor: pointer;
-  background: linear-gradient(160deg, #1E4860 0%, #152E40 55%, #0D2030 100%);
-  box-shadow: var(--shadow-md);
-  padding: clamp(18px, 5.6vw, 24px) var(--pad-x) clamp(14px, 4.6vw, 20px);
+  background: linear-gradient(160deg, #1E4860 0%, #152E40 58%, #0D2030 100%);
+  box-shadow: var(--shadow-lg);
+  padding: clamp(18px, 5.1vw, 24px) clamp(18px, 5.1vw, 24px) clamp(14px, 4.1vw, 18px);
   color: #C8DDE8; display: flex; flex-direction: column;
 }
-.stampcard::after { content:''; position:absolute; right:-70px; top:-60px; width:230px; height:230px;
-  background: radial-gradient(circle, rgba(43,189,206,.20), transparent 68%); pointer-events: none; }
+.stampcard::before {
+  content:''; position:absolute; right:-80px; top:-80px;
+  width:260px; height:260px; border-radius:50%;
+  background: radial-gradient(circle, rgba(43,189,206,.18), transparent 65%);
+  pointer-events: none;
+}
+.stampcard::after {
+  content:''; position:absolute; left:-40px; bottom:-40px;
+  width:160px; height:160px; border-radius:50%;
+  background: radial-gradient(circle, rgba(43,189,206,.10), transparent 65%);
+  pointer-events: none;
+}
 
-/* Top info section */
-.stampcard__top { flex: 0 0 auto; }
-.stampcard__brand { font-family: var(--font-en); font-weight: 600; font-size: clamp(10px, 2.8vw, 12px);
-  letter-spacing: .12em; color: rgba(255,255,255,.45); display: flex; align-items: center; gap: 6px; }
+/* Header row: brand + badge */
+.sc-header {
+  display: flex; align-items: center; justify-content: space-between;
+  flex: 0 0 auto;
+}
+.sc-brand {
+  font-family: var(--font-en); font-size: clamp(9px, 2.6vw, 11px);
+  font-weight: 600; letter-spacing: .1em; color: rgba(255,255,255,.4);
+}
+.sc-badge {
+  font-family: var(--font-en); font-size: clamp(10px, 2.8vw, 12px); font-weight: 700;
+  padding: 4px 12px; border-radius: 100px;
+  background: rgba(43,189,206,.2); color: var(--accent);
+}
+.sc-badge--low { background: rgba(208,96,108,.25); color: #F0A0A8; }
+
+/* BIG course name — dominant element */
+.sc-name {
+  font-family: var(--font-dp); font-weight: 700; line-height: 1.05;
+  font-size: clamp(32px, 9.5vw, 52px); color: #fff;
+  margin: 10px 0 14px; flex: 0 0 auto;
+}
+
+/* Stamps area */
+.sc-stamps { flex: 1; display: flex; align-items: center; min-height: 0; }
+.stamps {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: clamp(7px, 2.3vw, 10px); width: 100%;
+}
+.stamp {
+  aspect-ratio: 3 / 4; border-radius: 100px;
+  display: grid; place-items: center;
+}
+.stamp--done {
+  background: rgba(200,232,244,.18);
+  color: rgba(200,232,244,.9);
+  border: 1.5px solid rgba(200,232,244,.25);
+}
+.stamp--done svg { width: clamp(22px, 6.2vw, 30px); height: clamp(22px, 6.2vw, 30px); stroke-width: 1.6; }
+.stamp--left {
+  background: rgba(255,255,255,.04);
+  border: 1.5px dashed rgba(255,255,255,.12);
+}
+
+/* Footer */
+.sc-footer {
+  flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between;
+  margin-top: 12px; padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,.08);
+  font-size: clamp(10px, 2.8vw, 12px); color: rgba(255,255,255,.4);
+  font-family: var(--font-en);
+}
+.sc-footer .ic svg { width: 12px; height: 12px; }
+
+/* Legacy classes (for detail card / history references) */
 .slc-mark { width: 16px; height: 11px; flex-shrink: 0; }
-.stampcard__cat { display: inline-flex; align-items: center; gap: 5px;
-  font-size: clamp(10.5px, 3vw, 12.5px); color: #7A9DB5; margin-top: 10px; }
-.stampcard__title { font-family: var(--font-dp); font-weight: 700; line-height: 1.05;
-  font-size: clamp(26px, 7.7vw, 36px); color: var(--accent); margin-top: 4px; }
-
-/* Stamp section — fills remaining space */
-.stampcard__stamps-wrap { flex: 1; display: flex; align-items: center; padding: 14px 0 8px; }
-
-/* stamp grid */
-.stamps { display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(7px, 2.5vw, 12px); width: 100%; }
-.stamp { aspect-ratio: 3 / 4; border-radius: 100px; display: grid; place-items: center; }
-.stamp--done { background: var(--cream); color: var(--stamp-ink); }
-.stamp--done svg { width: clamp(20px, 5.6vw, 26px); height: clamp(20px, 5.6vw, 26px); stroke-width: 1.8; }
-.stamp--left { background: rgba(43,189,206,.06); border: 1.5px dashed rgba(43,189,206,.25); }
-
-.stampcard__foot { flex: 0 0 auto; display: flex; align-items: flex-end; justify-content: space-between; }
-.stampcard__count .big { font-family: var(--font-dp); font-weight: 700; font-size: clamp(24px, 7.2vw, 32px); line-height: 1; color: #fff; }
-.stampcard__count .big small { font-family: var(--font-th); font-size: clamp(12px, 3.4vw, 14px); font-weight: 400; color: #7A9DB5; }
-.stampcard__count .lab { font-size: clamp(10px, 2.8vw, 12px); color: #7A9DB5; margin-top: 3px; }
-.stampcard__exp { font-size: 11px; color: rgba(255,255,255,.4); text-align: right; }
-.stampcard__exp b { display: block; color: rgba(255,255,255,.7); font-weight: 600; font-size: 12.5px; margin-top: 2px; }
-.stampcard__bar { flex: 0 0 auto; margin-top: 12px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 10px; }
 .sbar-track { height: 3px; background: rgba(255,255,255,.12); border-radius: 100px; overflow: hidden; }
 .sbar-fill { height: 100%; background: var(--accent); border-radius: 100px; transition: width .4s; }
-.sbar-meta { display: flex; justify-content: space-between; margin-top: 6px;
-  font-size: 10.5px; font-family: var(--font-en); color: rgba(255,255,255,.35); letter-spacing: .02em; }
 
 /* deck pager dots */
 .dots { display: flex; justify-content: center; gap: 6px; padding: 14px 0 0; }
@@ -799,14 +837,10 @@ body {
 }
 .view--home .deck__cell { height: 100%; }
 .view--home .stampcard  { height: 100%; }
-.view--home .stampcard__stamps-wrap { flex: 1; padding: 10px 0 6px; }
-.view--home .stamps {
-  flex: 1;
-  min-height: 0;
-  grid-auto-rows: 1fr;
-}
-.view--home .stamp { aspect-ratio: unset; border-radius: 100px; }
-.view--home .stamp--done svg { width: clamp(18px, 5vw, 24px); height: clamp(18px, 5vw, 24px); }
+.view--home .sc-name { flex: 1; display: flex; align-items: center; margin-bottom: 10px; }
+.view--home .sc-stamps { flex: none; }
+.view--home .stamps { grid-auto-rows: auto; }
+.view--home .stamp { aspect-ratio: 3/4; border-radius: 100px; }
 
 /* Home bottom bar — dots + profile button */
 .home-bottom {
