@@ -847,11 +847,7 @@ const VIEWS = {
       (a.date === TODAY_ISO || a.date === tomorrowISO) && a.status !== 'completed'
     );
     return `
-    <div class="topbar">
-      <div class="searchbar">${icon('search')}<input placeholder="ค้นหาคอร์ส หรือ หัตถการ..." id="search-input" autocomplete="off" /></div>
-      <div class="avatar-btn" data-go="profile">${icon('user')}</div>
-    </div>
-    ${soonAppts.length ? `<div class="home-notif pad" style="padding-top:10px">
+    ${soonAppts.length ? `<div class="home-notif pad" style="padding-top:12px">
       <div class="note" style="cursor:pointer" data-tab2="appts">
         ${icon('bell')}
         <div>
@@ -862,7 +858,10 @@ const VIEWS = {
     <div class="deck">
       ${active.map(c => `<div class="deck__cell">${stampCard(c)}</div>`).join('')}
     </div>
-    <div class="dots">${active.map((_, i) => `<i class="${i === 0 ? 'is-on' : ''}"></i>`).join('')}</div>`;
+    <div class="home-bottom">
+      <div class="dots">${active.map((_, i) => `<i class="${i === 0 ? 'is-on' : ''}"></i>`).join('')}</div>
+      <div class="avatar-btn" data-go="profile" style="margin-left:auto">${icon('user')}</div>
+    </div>`;
   },
 
   /* ---------- COURSES ---------- */
