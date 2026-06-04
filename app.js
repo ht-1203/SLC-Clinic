@@ -396,6 +396,7 @@ let _lastTab = null;
 function render() {
   const fn = VIEWS[State.view] || VIEWS.home;
   $view.innerHTML = fn(State.opts || {});
+  $view.classList.toggle('view--home', State.view === 'home');
   if (State.tab !== _lastTab) { renderTabbar(); _lastTab = State.tab; }
   bindView();
 }
@@ -624,7 +625,7 @@ const VIEWS = {
       <div class="searchbar">${icon('search')}<input placeholder="ค้นหาคอร์ส หรือ หัตถการ..." id="search-input" autocomplete="off" /></div>
       <div class="avatar-btn" data-go="profile">${icon('user')}</div>
     </div>
-    ${soonAppts.length ? `<div class="pad" style="padding-top:10px">
+    ${soonAppts.length ? `<div class="home-notif pad" style="padding-top:10px">
       <div class="note" style="cursor:pointer" data-tab2="appts">
         ${icon('bell')}
         <div>

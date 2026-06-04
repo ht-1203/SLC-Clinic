@@ -766,3 +766,34 @@ body {
   /* Ensure page headings don't overflow */
   .pagehead__title { font-size: 18px; }
 }
+
+/* ============================================================
+   HOME — พอดีจอ ไม่ต้อง scroll
+   ============================================================ */
+.view--home {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+}
+.view--home .topbar    { flex: 0 0 auto; }
+.view--home .home-notif { flex: 0 0 auto; }
+.view--home .deck {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+  padding-bottom: 0;
+}
+.view--home .deck__cell { height: 100%; }
+.view--home .stampcard  { height: 100%; }
+.view--home .stamps {
+  flex: 1;
+  min-height: 0;
+  grid-auto-rows: 1fr;
+}
+.view--home .stamp { aspect-ratio: unset; }
+.view--home .dots {
+  flex: 0 0 auto;
+  padding-top: 10px;
+  padding-bottom: calc(clamp(88px, 24vw, 108px) + env(safe-area-inset-bottom));
+}
